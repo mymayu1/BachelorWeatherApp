@@ -1,0 +1,13 @@
+{
+  "name": "weatherd3-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "live-server"
+  },
+  "keywords": [],
+  "author": "Nguyen, Tra My",
+  "license": "ISC",
+  "description": "Bachelorarbeit"
+}

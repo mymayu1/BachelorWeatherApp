@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="./dist/output.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bachelorarbeit</title>
+
+</head>
+<body>
+    <div id="container">
+        <!--Kopfzeile-->
+        <header class="bg-gray-200 text-white p-4">
+            <nav class="flex justify-between items-center">
+                <div id="time" class="text-2xl font-sans  font-small text-gray-800"></div>
+                <div class="flex items-center space-x-10">
+                    <div id="date" class="text-2xl font sans font-small text-gray-800"></div>
+                    <div id="cityInput" class="grid-flow-col mx-8">
+                        <input 
+                        type="text" 
+                        placeholder="Stadt suchen..." 
+                        class="px-4 py-2 rounded-2xl text-gray-800 focus:outline-none focus:ring focus:ring-blue-500"
+                        />
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                            Suchen
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!--Hauptkontent-->
+        <main class="main">
+        <div id="weatherCanvas">
+            <div id="weatherView">
+                <div id="weatherDescription">
+                    <div id="topBar" class="p-4 flex-nowrap">
+                       <!-- <p id="location" class="border-black"></p> -->
+                        <p id="sunrise" class="border-black"></p>
+                        <p id="sunset" class="border-black"></p>
+                    </div>
+                    <div id="leftInformation">
+                        <p>
+                            <h1>Weather Description: Stormy</h1>
+                            <h2>with Heavy Rain</h2>
+                        </p>
+                    </div>
+                    <div id="rightInformation">
+                        <p>
+                            <h1>2°C</h1>
+                            <h6>H: 4°  L: -1°</h6>
+                            <h6>Feels like: -2°</h6>
+                        </p>
+                        <p>
+                            <h4>Regenfall: 30%</h4>
+                            <h4>Windgeschwindigkeit: 0km/h</h4>
+                            <h4>UV-Index: 0</h4>
+                        </p>
+                    </div>
+                    <div>
+                        <svg id="line-chart"></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </main>
+    </div>
+
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script type="module" src="./index.js"></script>
+    
+</body>
+</html>
