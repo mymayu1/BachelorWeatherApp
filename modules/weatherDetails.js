@@ -1,8 +1,8 @@
 function displayWeatherData({ sunRise, sunSet }){
 
       // Standort anzeigen
-    //   const locationElement = document.getElementById('location');
-    //   locationElement.textContent = `Standort: ${location}`;
+    //  const locationElement = document.getElementById('location');
+    //  locationElement.textContent = `Standort: ${location}`;
 
        // Sonnenaufgang und Sonnenuntergang abrufen
 
