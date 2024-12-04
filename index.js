@@ -6,44 +6,50 @@ updateTime();
 const apiKey = 'dtYQZYtAmR1SF1gHaifXh854PrkeC0nm';
 const options = { method: 'GET', headers: { accept: 'application/json' } };
 
-function fetchWeatherData(city){
-// Echtzeit-Wetterdaten abrufen
-  fetch(`https://api.tomorrow.io/v4/weather/realtime?location=berlin&apikey=${apiKey}`, options)
-    .then(res => res.json())
-    .then(realtimeData => {
-      //const location = "Berlin"; // 
+ async function fetchWeatherData(city){
 
-      // Forecast-Daten abrufen
-      return fetch(`https://api.tomorrow.io/v4/weather/forecast?location=berlin&apikey=${apiKey}`, options)
-        .then(res => res.json())
-        .then(forecastData => {
-          const dailyForecast = forecastData.timelines?.daily?.[0]?.values;
+  try{
+    // Echtzeit-Wetterdaten abrufen
+    const realtimeResponse = await fetch(
+      //`https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`,
+      `https://api.tomorrow.io/v4/weather/realtime?location=berlin&apikey=${apiKey}`,
+      options
+    );
 
-          if (!dailyForecast) {
-            throw new Error('Forecast-Daten fehlen oder sind unvollständig!');
-          }
+    const realtimeData = await realtimeResponse.json();
+    console.log("Echtzeitdaten:", realtimeData);
 
-          const sunRise = dailyForecast.sunriseTime;
-          const sunSet = dailyForecast.sunsetTime;
+    //Forecast-Wetterdaten abrufen
+    const forecastResponse = await fetch(
+      //`https://api.tomorrow.io/v4/weather/forecast?location=${city}&apikey=${apiKey}`,
+      `https://api.tomorrow.io/v4/weather/forecast?location=berlin&apikey=${apiKey}`,
+      options
+    );
 
-          // Display-Funktion mit den Daten aufrufen
-          displayWeatherData({
-            //location,
-            sunRise,
-            sunSet,
-          });
+    const forecastData = await forecastResponse.json();
+    console.log("Forecastdaten:", forecastData);
 
-          console.log("Daten für displayWeatherData:", {
-        
-              sunRise,
-              sunSet,
-            });
-            
-        });
+    const dailyForecast = forecastData.timelines?.daily?.[0]?.values;
+
+    if (!dailyForecast) {
+      throw new Error('Forecast-Daten fehlen oder sind unvollständig!');
+    }
+
+    const sunRise = dailyForecast.sunriseTime;
+    const sunSet = dailyForecast.sunsetTime;
+
+    displayWeatherData({
+      sunRise,
+      sunSet,
     })
-    .catch(err => console.error('Fehler beim Abrufen der Wetterdaten:', err));
-}
 
+    console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet
+    });
+
+    } catch (error){
+      console.error("Fehler beim abrufen der Daten", error);
+    }
+  }
 document.getElementById('searchButton').addEventListener('click', () =>{
 
   const city = document.getElementById('cityInput').value.trim();
