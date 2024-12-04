@@ -39,17 +39,24 @@ const options = { method: 'GET', headers: { accept: 'application/json' } };
     const sunSet = dailyForecast.sunsetTime;
 
     displayWeatherData({
+      cityName: city,
       sunRise,
       sunSet,
     })
 
-    console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet
+    console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet, cityName
     });
 
     } catch (error){
       console.error("Fehler beim abrufen der Daten", error);
     }
   }
+
+// Standardstandort Berlin beim Laden der Seite
+document.addEventListener('DOMContentLoaded', () => {
+  fetchWeatherData('Berlin'); // Standardstadt
+});
+
 document.getElementById('searchButton').addEventListener('click', () =>{
 
   const city = document.getElementById('cityInput').value.trim();

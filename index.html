@@ -20,6 +20,7 @@
                         <input 
                             id="cityInput"
                             type="text" 
+                            value="Berlin"
                             placeholder="Stadt suchen..." 
                             class="px-4 py-2 rounded-2xl text-gray-800 focus:outline-none focus:ring focus:ring-blue-500"
                         />
@@ -35,10 +36,12 @@
         <div id="weatherCanvas">
             <div id="weatherView">
                 <div id="weatherDescription">
-                    <div id="topBar" class="p-4">
-                        <p id="location"></p>
-                        <p id="sunrise"></p>
-                        <p id="sunset"></p>
+                    <div id="topBar" class="p-4 grid grid-cols-3 gap-2">
+                        <p id="location">Berlin</p>
+                        <div class="grid grid-cols-none">
+                        <p id="sunrise" >7Uhr</p>
+                        <p id="sunset" >17 Uhr</p>
+                        </div>
                     </div>
                     <div id="leftInformation">
                         <p>
