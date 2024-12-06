@@ -11,8 +11,7 @@ const options = { method: 'GET', headers: { accept: 'application/json' } };
   try{
     // Echtzeit-Wetterdaten abrufen
     const realtimeResponse = await fetch(
-      //`https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`,
-      `https://api.tomorrow.io/v4/weather/realtime?location=berlin&apikey=${apiKey}`,
+      `https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`,
       options
     );
 
@@ -21,8 +20,8 @@ const options = { method: 'GET', headers: { accept: 'application/json' } };
 
     //Forecast-Wetterdaten abrufen
     const forecastResponse = await fetch(
-      //`https://api.tomorrow.io/v4/weather/forecast?location=${city}&apikey=${apiKey}`,
-      `https://api.tomorrow.io/v4/weather/forecast?location=berlin&apikey=${apiKey}`,
+      `https://api.tomorrow.io/v4/weather/forecast?location=${city}&apikey=${apiKey}`,
+
       options
     );
 

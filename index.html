@@ -37,29 +37,31 @@
             <div id="weatherView">
                 <div id="weatherDescription">
                     <div id="topBar" class="p-4 grid grid-cols-3 gap-2">
-                        <p id="location"></p>
+                        <p id="location">Standort:</p>
                         <div class="grid grid-cols-2">
-                        <p id="sunrise" ></p>
-                        <p id="sunset" ></p>
+                        <p id="sunrise" >Sonnenaufgang:</p>
+                        <p id="sunset" >Sonnenuntergang:</p>
                         </div>
                     </div>
-                    <div id="leftInformation">
-                        <p>
-                            <h1>Weather Description: Stormy</h1>
-                            <h2>with Heavy Rain</h2>
-                        </p>
-                    </div>
-                    <div id="rightInformation">
-                        <p>
-                            <h1>2°C</h1>
-                            <h6>H: 4°  L: -1°</h6>
-                            <h6>Feels like: -2°</h6>
-                        </p>
-                        <p>
-                            <h4>Regenfall: 30%</h4>
-                            <h4>Windgeschwindigkeit: 0km/h</h4>
-                            <h4>UV-Index: 0</h4>
-                        </p>
+                    <div id="bodyContainer" class="flex flex-row justify-between">
+                        <div id="leftInformation" class="p-4">
+                            <p>
+                                <h1>Weather Description: Stormy</h1>
+                                <h2>with Heavy Rain</h2>
+                            </p>
+                        </div>
+                        <div id="rightInformation" class="p-4">
+                            <p>
+                                <h1>2°C</h1>
+                                <h6>H: 4°  L: -1°</h6>
+                                <h6>Feels like: -2°</h6>
+                            </p>
+                            <p>
+                                <h4>Regenfall: 30%</h4>
+                                <h4>Windgeschwindigkeit: 0km/h</h4>
+                                <h4>UV-Index: 0</h4>
+                            </p>
+                        </div>
                     </div>
                     <div>
                         <svg id="line-chart"></svg>
