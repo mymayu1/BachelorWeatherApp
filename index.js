@@ -20,7 +20,6 @@ function saveToCache(key, data, callInMinutes){
 
 //Funktion zum Abrufen der Daten vom Cache
 
-
 function getFromCache(key){
   const itemStr = localStorage.getItem(key);
   if (!itemStr) return null;
@@ -38,8 +37,7 @@ function getFromCache(key){
 
 //Funktiomn zur Verarbeitung von Wetterdaten
 function processWeatherData(weatherData, city) {
-
-
+  const { realtime, forecast } = weatherData;
 
   const dailyForecast = forecastData.timelines?.daily?.[0]?.values;
 
@@ -60,9 +58,18 @@ function processWeatherData(weatherData, city) {
 
   displayWeatherData({
     cityName: city,
-    sunRise,
-    sunSet,
-  })
+    sunRise: forecast.timelines.daily[0].sunriseTime,
+    sunSet:forecast.timelines.daily[0].sunsetTime,
+   /* weatherCodes,
+      temperatureApparent aka feelsLike,
+      percipitation
+      percipitationIntensity,
+      windSpeed,
+      windDirection,
+      humidity,
+      uvIndecx,
+   */
+  });
 
 
   console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet, cityName
