@@ -1,6 +1,6 @@
 import { updateTime } from './modules/header.js';
 import { displayWeatherData } from './modules/weatherDetails.js';
-import { createLineChart } from './modules/lineChart.js';
+//import { createLineChart } from './modules/lineChart.js';
 
 updateTime();
 
@@ -19,7 +19,6 @@ function saveToCache(key, data, callInMinutes){
 }
 
 //Funktion zum Abrufen der Daten vom Cache
-
 function getFromCache(key){
   const itemStr = localStorage.getItem(key);
   if (!itemStr) return null;
@@ -38,55 +37,80 @@ function getFromCache(key){
 //Funktiomn zur Verarbeitung von Wetterdaten
 function processWeatherData(weatherData, city) {
   const { realtime, forecast } = weatherData;
-
-  const dailyForecast = forecastData.timelines?.daily?.[0]?.values;
+  console.log("Realtime-Daten:", realtime);
+  console.log("Forecast-Daten:", forecast);
+  if (!forecast.timelines || !forecast.timelines.daily || !forecast.timelines.hourly) {
+    console.error("Fehler: Forecast-Daten sind unvollständig:", forecast.timelines);
+    return;
+}
+  //Täglicher Forecast
+  const dailyForecast = forecast.timelines?.daily?.[0]?.values;
 
   if (!dailyForecast) {
     throw new Error('Forecast-Daten fehlen oder sind unvollständig!');
   }
+  console.log("Tagesvorhersage:", dailyForecast);
 
+  
 
-
-  const hourlyData = forecastData.timelines.hourly.map((entry) => ({
-    time: entry.startTime,
-    temp: entry.values.tempurature,
+  //Stundenwerte 
+  const hourlyData = forecast.timelines.hourly.map((entry) => ({
+    time: entry.time || "Zeit nicht verfügbar",
+    temp: entry.values.temperature,
 
   }));
+  console.log("Stundenwerte (hourlyData):", hourlyData);
+  console.log("Beispiel einer hourly-Einheit:", forecast.timelines.hourly[0]);
+
+  
+  //const realtimeData = realtime.data.values || {};
 
   const sunRise = dailyForecast.sunriseTime;
   const sunSet = dailyForecast.sunsetTime;
 
+  //RealtimeData
+  const weatherDataShow = {
+    weatherCode: realtime.data.values.weatherCode || "Unbekannt",
+    temperatureNow: realtime.data.values.temperature || "N/A",
+    temperatureMax: dailyForecast.temperatureMax || "N/A",
+    temperatureMin: dailyForecast.temperatureMin || "N/A",
+    temperatureApparent: realtime.data.values.temperatureApparent || "N/A",
+    precipitationNow: realtime.data.values.precipitationProbability,
+ //   precipitationIntensity: dailyForecast.precipitationIntensity,
+    windSpeed: realtime.data.values.windSpeed || "N/A",
+    windDirection: realtime.data.values.windDirection || "N/A",
+    humidity: realtime.data.values.humidity || "N/A",
+    uvIndex: realtime.data.values.uvIndex,
+  };
+  console.log("Weather-Details:", weatherDataShow);
+
   displayWeatherData({
     cityName: city,
-    sunRise: forecast.timelines.daily[0].sunriseTime,
-    sunSet:forecast.timelines.daily[0].sunsetTime,
-   /* weatherCodes,
-      temperatureApparent aka feelsLike,
-      percipitation
-      percipitationIntensity,
-      windSpeed,
-      windDirection,
-      humidity,
-      uvIndecx,
-   */
+    sunRise,
+    sunSet,
+    weatherDetails: weatherDataShow,
+
   });
 
+  const cityName = city;
 
-  console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet, cityName
+
+  console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet, cityName, weatherDataShow
   });
 
-  createLineChart(document.getElementById("lineChart"), hourlyData);
+ // createLineChart(document.getElementById("lineChart"), hourlyData);
 
 
 }
 
- async function fetchWeatherData(city){
+async function fetchWeatherData(city){
 
   const cacheKey = `weatherData_${city}`;
   const cachedData = getFromCache(cacheKey);
 
   if (cachedData) {
     console.log("Cache-Daten gefunden:", cachedData);
+    processWeatherData(cachedData, city); // Verarbeitung hinzufügen
     return; //Verlasse wenn die Funktion verwendet wird
   }
 
@@ -156,7 +180,7 @@ function processWeatherData(weatherData, city) {
     } catch (error){
       console.error("Fehler beim abrufen der Daten", error);
     }
-  }
+}
 
 // Standardstandort Berlin beim Laden der Seite
 document.addEventListener('DOMContentLoaded', () => {
@@ -166,11 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('searchButton').addEventListener('click', () =>{
 
   const city = document.getElementById('cityInput').value.trim();
-
   if (!city){
     alert("Bitte Stadt eingeben!");
     return;
   }
-
   fetchWeatherData(city);
 })
