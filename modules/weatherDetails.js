@@ -24,7 +24,7 @@ function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
     const sunsetElement = document.getElementById('sunset');
     sunsetElement.textContent = `Sonnenuntergang: ${sunSetString}`;
 
-    const { weatherCode, temperatureNow, temperatureMax, temperatureMin, temperatureApparent, precipitationNow, 
+    const { weatherCode, temperatureNow, temperatureMax, temperatureMin, temperatureApparent, precipitationAvg, 
       windSpeed, windDirection, humidity, uvIndex} = weatherDetails;
 
     const leftInformation = document.getElementById('leftInformation')
@@ -46,7 +46,7 @@ function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
         <h6>Gefühlt: ${temperatureApparent}°</h6>
       </p>
       <p>
-        <h4>Regenfall: ${precipitationNow} %</h4>
+        <h4>Regenfall: ${precipitationAvg} %</h4>
         <h4>Wind: ${windSpeed} km/h (${windDirection}°)</h4>
         <h4>Luftfeuchtigkeit: ${humidity}%</h4>
         <h4>UV-Index: ${uvIndex}</h4>

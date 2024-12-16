@@ -9,11 +9,11 @@ const apiKey = 'dtYQZYtAmR1SF1gHaifXh854PrkeC0nm';
 const options = { method: 'GET', headers: { accept: 'application/json' } };
 
 //Funktion zum Speichern von Daten in Cache
-function saveToCache(key, data, callInMinutes){
+function saveToCache(key, data, callInMinutes = 1){
   const now = new Date();
   const item ={
     data: data,
-    expiry: now.getTime() + callInMinutes * 60 * 1000, //Ablaufzeit in 1h in ms
+    expiry: now.getTime() + callInMinutes * 60 * 1000, //Ablaufzeit in ms
   };
   localStorage.setItem(key, JSON.stringify(item));
 }
@@ -75,7 +75,7 @@ function processWeatherData(weatherData, city) {
     temperatureMax: dailyForecast.temperatureMax || "N/A",
     temperatureMin: dailyForecast.temperatureMin || "N/A",
     temperatureApparent: realtime.data.values.temperatureApparent || "N/A",
-    precipitationNow: realtime.data.values.precipitationProbability,
+    precipitationAvg: dailyForecast.precipitationProbabilityAvg || "N/A",
  //   precipitationIntensity: dailyForecast.precipitationIntensity,
     windSpeed: realtime.data.values.windSpeed || "N/A",
     windDirection: realtime.data.values.windDirection || "N/A",
@@ -184,7 +184,7 @@ async function fetchWeatherData(city){
 
 // Standardstandort Berlin beim Laden der Seite
 document.addEventListener('DOMContentLoaded', () => {
-  fetchWeatherData('Berlin'); // Standartstadt
+  fetchWeatherData('Berlin'); // Standardstadt
 });
 
 document.getElementById('searchButton').addEventListener('click', () =>{
