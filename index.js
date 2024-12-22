@@ -63,6 +63,29 @@ function processWeatherData(weatherData, city) {
 
     console.log("AllWeatherCodes:", weatherCodeDescriptions);
     console.log("Wettercode:", allWeatherCodes, "Beschreibung:", weatherDescription);
+
+    const weatherDataShow = {
+      weatherCode: weatherDescription || "Unbekannt",
+      temperatureNow: realtime.data.values.temperature || "N/A",
+      temperatureMax: dailyForecast.temperatureMax || "N/A",
+      temperatureMin: dailyForecast.temperatureMin || "N/A",
+      temperatureApparent: realtime.data.values.temperatureApparent || "N/A",
+      precipitationAvg: dailyForecast.precipitationProbabilityAvg || "N/A",
+      windSpeed: realtime.data.values.windSpeed || "N/A",
+      windDirection: realtime.data.values.windDirection || "N/A",
+      humidity: realtime.data.values.humidity || "N/A",
+      uvIndex: realtime.data.values.uvIndex,
+    };
+    console.log("Weather-Details:", weatherDataShow);
+
+
+  displayWeatherData({
+    cityName: city,
+    sunRise,
+    sunSet,
+    weatherDetails: weatherDataShow,
+  });
+
   });
 
   console.log("Stundenwerte (hourlyData):", hourlyData);
@@ -72,26 +95,6 @@ function processWeatherData(weatherData, city) {
   const sunRise = dailyForecast.sunriseTime;
   const sunSet = dailyForecast.sunsetTime;
 
-  const weatherDataShow = {
-    weatherCode: weatherDescription || "Unbekannt",
-    temperatureNow: realtime.data.values.temperature || "N/A",
-    temperatureMax: dailyForecast.temperatureMax || "N/A",
-    temperatureMin: dailyForecast.temperatureMin || "N/A",
-    temperatureApparent: realtime.data.values.temperatureApparent || "N/A",
-    precipitationAvg: dailyForecast.precipitationProbabilityAvg || "N/A",
-    windSpeed: realtime.data.values.windSpeed || "N/A",
-    windDirection: realtime.data.values.windDirection || "N/A",
-    humidity: realtime.data.values.humidity || "N/A",
-    uvIndex: realtime.data.values.uvIndex,
-  };
-  console.log("Weather-Details:", weatherDataShow);
-
-  displayWeatherData({
-    cityName: city,
-    sunRise,
-    sunSet,
-    weatherDetails: weatherDataShow,
-  });
 
   const cityName = city;
 
