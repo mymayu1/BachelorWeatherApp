@@ -98,8 +98,7 @@ function processWeatherData(weatherData, city) {
 
   const cityName = city;
 
-  console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet, cityName, weatherDataShow
-  });
+  console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet, cityName, weatherData });
 
 }
 
@@ -162,4 +161,15 @@ document.getElementById('searchButton').addEventListener('click', () => {
     return;
   }
   fetchWeatherData(city);
-})
+});
+
+document.getElementById('cityInput').addEventListener('keyup', (event) => {
+  if (event.key === 'Enter') {
+    const city = event.target.value.trim();
+    if (!city){
+      alert("Bitte Stadt eingeben!");
+     return;
+    }
+    fetchWeatherData(city);
+  }
+});
