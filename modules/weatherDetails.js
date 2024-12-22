@@ -1,4 +1,6 @@
+
 function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
+
 
     // Standort anzeigen
     const locationElement = document.getElementById('location');
@@ -27,14 +29,12 @@ function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
     const { weatherCode, temperatureNow, temperatureMax, temperatureMin, temperatureApparent, precipitationAvg, 
       windSpeed, windDirection, humidity, uvIndex} = weatherDetails;
 
+  
+
     const leftInformation = document.getElementById('leftInformation')
     if (leftInformation) {
-      leftInformation.innerHTML = `
-      <p>
-        <h1>Wetterzustand: ${weatherCode}</h1>
-
-      </p>
-      `;
+      leftInformation.textContent = 
+      `Wetterzustand: ${weatherCode}`;
     }
 
     const rightInformation = document.getElementById('rightInformation')
@@ -42,7 +42,8 @@ function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
       rightInformation.innerHTML = `
       <p>
         <h1>${temperatureNow}°C</h1>
-        <h6>H:${temperatureMax}°C   T:${temperatureMin}°C</h4>
+        <h6>H:${temperatureMax}°C</h6>
+        <h6>T:${temperatureMin}°C</h6>
         <h6>Gefühlt: ${temperatureApparent}°</h6>
       </p>
       <p>
