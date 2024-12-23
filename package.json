@@ -9,5 +9,8 @@
   "keywords": [],
   "author": "Nguyen, Tra My",
   "license": "ISC",
-  "description": "Bachelorarbeit"
+  "description": "Bachelorarbeit",
+  "dependencies": {
+    "luxon": "^3.5.0"
+  }
 }

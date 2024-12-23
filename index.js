@@ -1,5 +1,7 @@
 import { updateTime } from './modules/header.js';
 import { displayWeatherData } from './modules/weatherDetails.js';
+const { DateTime } = luxon;
+
 
 //import { createLineChart } from './modules/lineChart.js';
 
@@ -35,6 +37,7 @@ function getFromCache(key) {
 
 function processWeatherData(weatherData, city) {
   const { realtime, forecast } = weatherData;
+
   console.log("Realtime-Daten:", realtime);
   console.log("Forecast-Daten:", forecast);
   if (!forecast.timelines || !forecast.timelines.daily || !forecast.timelines.hourly) {
@@ -57,12 +60,27 @@ function processWeatherData(weatherData, city) {
   }));
 
   const allWeatherCodes = realtime.data.values.weatherCode;
-  loadWeatherData().then((weatherCodeDescriptions) => {
 
+  //Hole latitude und longitude aus den realtime daten
+  const { lat: latitude, lon: longitude } = realtime.location || {};
+  if (latitude === undefined || longitude === undefined) {
+    console.error("Koordinaten nicht verfügbar!");
+    return;
+  }
+  //Zeitzone basierend auf den Koordinaten
+  const timeZone = getTimeZone(latitude, longitude);
+  const sunRiseLocal = convertToLocalTime(dailyForecast.sunriseTime, timeZone);
+  const sunSetLocal = convertToLocalTime(dailyForecast.sunsetTime, timeZone);
+
+  loadWeatherData().then((weatherCodeDescriptions) => {
     const weatherDescription = weatherCodeDescriptions[allWeatherCodes] || "Beschreibung nicht verfügbar";
 
-    console.log("AllWeatherCodes:", weatherCodeDescriptions);
-    console.log("Wettercode:", allWeatherCodes, "Beschreibung:", weatherDescription);
+    // //Hole latitude und longitude aus den realtime daten
+    // const { latitude, longitude } = realtime.location;
+    // //Zeitzone basierend auf den Koordinaten
+    // const timeZone = getTimeZone(latitude, longitude);
+    // const sunRiseLocal = convertToLocalTime(dailyForecast.sunriseTime, timeZone);
+    // const sunSetLocal = convertToLocalTime(dailyForecast.sunsetTime, timeZone);
 
     const weatherDataShow = {
       weatherCode: weatherDescription || "Unbekannt",
@@ -81,13 +99,47 @@ function processWeatherData(weatherData, city) {
 
   displayWeatherData({
     cityName: city,
-    sunRise,
-    sunSet,
+    sunRise: sunRiseLocal,
+    sunSet: sunSetLocal,
     weatherDetails: weatherDataShow,
   });
 
+  
   });
+  console.log("Zeitzone:", timeZone);
+  console.log("Lokaler Sonnenaufgang:", sunRiseLocal);
+  console.log("Lokaler Sonnenuntergang:", sunSetLocal);
 
+
+
+  function getTimeZone(latitude, longitude) {
+    if (latitude === undefined || longitude === undefined) {
+      console.error("Ungültige Koordinaten:", { latitude, longitude });
+      return "UTC";
+    }
+    const offset = longitude / 15; // Näherung für Zeitzonen
+    const hours = Math.floor(offset);
+    const minutes = Math.abs(Math.round((offset - hours) * 60));
+    const utcZone = `UTC${hours >= 0 ? "+" : ""}${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    return utcZone;
+  }
+  
+
+  //Funktion um die lokale Zeit zu finden
+  function convertToLocalTime(time, timeZone){
+    if (!time) {
+      console.error("Ungültiger Zeitwert für Konvertierung:", time);
+      return "Ungültige Zeit";
+    }
+
+    try {
+      const localTime = DateTime.fromISO(time, { zone: "UTC" }).setZone(timeZone);
+      return localTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+    } catch(error){
+      console.error("Fehler bei der Zeitkonvertierung:", error);
+      return "Zeitfehler";
+    }
+  }
   console.log("Stundenwerte (hourlyData):", hourlyData);
   console.log("Beispiel einer hourly-Einheit:", forecast.timelines.hourly[0]);
 
