@@ -1,9 +1,7 @@
 import { updateTime } from './modules/header.js';
 import { displayWeatherData } from './modules/weatherDetails.js';
 const { DateTime } = luxon;
-
-
-//import { createLineChart } from './modules/lineChart.js';
+import { createLineChart } from './modules/lineChart.js';
 
 updateTime();
 
@@ -12,13 +10,42 @@ const options = { method: 'GET', headers: { accept: 'application/json' } };
 
 //Funktion zum Speichern von Daten in Cache
 function saveToCache(key, data, callInMinutes = 1) {
+  try {
   const now = new Date();
   const item = {
     data: data,
     expiry: now.getTime() + callInMinutes * 60 * 1000, //Ablaufzeit in ms
   };
-  localStorage.setItem(key, JSON.stringify(item));
+  const itemStr = JSON.stringify(item);
+
+  // Speicherplatz prüfen
+  if (itemStr.length > 5000000) { // 5 MB als Beispiel
+    console.warn("Daten sind zu groß für localStorage und werden nicht gespeichert.");
+    return;
+  }
+  localStorage.setItem(key, itemStr);
+} catch (error) {
+  console.error("Fehler beim Speichern in localStorage:", error);
 }
+}
+function clearExpiredCache() {
+  const now = new Date();
+  Object.keys(localStorage).forEach((key) => {
+    try {
+      const itemStr = localStorage.getItem(key);
+      const item = JSON.parse(itemStr);
+      if (item.expiry && now.getTime() > item.expiry) {
+        localStorage.removeItem(key); // Lösche abgelaufene Einträge
+        console.log(`Abgelaufener Cache entfernt: ${key}`);
+      }
+    } catch (error) {
+      console.error(`Fehler beim Prüfen von ${key}:`, error);
+    }
+  });
+}
+
+// Rufe clearExpiredCache vor jedem Speichern auf
+clearExpiredCache();
 
 //Funktion zum Abrufen der Daten vom Cache
 function getFromCache(key) {
@@ -84,11 +111,11 @@ function processWeatherData(weatherData, city) {
 
     const weatherDataShow = {
       weatherCode: weatherDescription || "Unbekannt",
-      temperatureNow: realtime.data.values.temperature || "N/A",
+      temperatureNow: realtime.data.values?.temperature ?? "N/A",
       temperatureMax: dailyForecast.temperatureMax || "N/A",
       temperatureMin: dailyForecast.temperatureMin || "N/A",
       temperatureApparent: realtime.data.values.temperatureApparent || "N/A",
-      precipitationAvg: dailyForecast.precipitationProbabilityAvg || "N/A",
+      precipitationAvg: dailyForecast?.precipitationProbabilityAvg ?? "Daten fehlen",
       windSpeed: realtime.data.values.windSpeed || "N/A",
       windDirection: realtime.data.values.windDirection || "N/A",
       humidity: realtime.data.values.humidity || "N/A",
@@ -224,4 +251,8 @@ document.getElementById('cityInput').addEventListener('keyup', (event) => {
     }
     fetchWeatherData(city);
   }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  createLineChart("#lineChart");
 });
