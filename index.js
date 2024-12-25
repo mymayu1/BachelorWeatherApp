@@ -44,7 +44,7 @@ function clearExpiredCache() {
   });
 }
 
-// Rufe clearExpiredCache vor jedem Speichern auf
+// Ruft clearExpiredCache vor jedem Speichern auf
 clearExpiredCache();
 
 //Funktion zum Abrufen der Daten vom Cache
@@ -101,13 +101,6 @@ function processWeatherData(weatherData, city) {
 
   loadWeatherData().then((weatherCodeDescriptions) => {
     const weatherDescription = weatherCodeDescriptions[allWeatherCodes] || "Beschreibung nicht verfügbar";
-
-    // //Hole latitude und longitude aus den realtime daten
-    // const { latitude, longitude } = realtime.location;
-    // //Zeitzone basierend auf den Koordinaten
-    // const timeZone = getTimeZone(latitude, longitude);
-    // const sunRiseLocal = convertToLocalTime(dailyForecast.sunriseTime, timeZone);
-    // const sunSetLocal = convertToLocalTime(dailyForecast.sunsetTime, timeZone);
 
     const weatherDataShow = {
       weatherCode: weatherDescription || "Unbekannt",
@@ -254,5 +247,17 @@ document.getElementById('cityInput').addEventListener('keyup', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  createLineChart("#lineChart");
+  const dummyData = [
+    { time: "2024-12-22T00:00:00", temp: 5 },
+    { time: "2024-12-22T03:00:00", temp: 7 },
+    { time: "2024-12-22T06:00:00", temp: 10 },
+    { time: "2024-12-22T09:00:00", temp: 15 },
+    { time: "2024-12-22T12:00:00", temp: 12 },
+  ];
+
+  createLineChart("#chartContainer", dummyData);
+  console.log("Data for Line Chart:", dummyData);
+
+
 });
+
