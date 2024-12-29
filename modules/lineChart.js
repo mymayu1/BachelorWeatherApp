@@ -26,9 +26,20 @@ export function createLineChart(containerId, data) {
     .domain([d3.min(data, d => d.temp) - 5, d3.max(data, d => d.temp) + 5]) // Temperaturbereich
     .range([height, 0]); // Pixelbereich (invertiert)
 
+    //Clippath
+    chartGroup
+    .append("defs")
+    .append("clipPath")
+    .attr("id", "clip")
+    .append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", width)
+    .attr("height", height);
+
 
     // X- und Y-Achsen erstellen
-    const xAxis = d3.axisBottom(xScale).ticks(8).tickFormat(d3.timeFormat("%H:%M"));
+    const xAxis = d3.axisBottom(xScale).ticks(8).tickSizeOuter(0).tickFormat(d3.timeFormat("%H:%M"));
     const yAxis = d3.axisLeft(yScale);
 
     // X-Achse hinzufügen
@@ -56,9 +67,11 @@ export function createLineChart(containerId, data) {
     .attr("fill", "none")
     .attr("stroke", "steelblue")
     .attr("stroke-width", 2)
-    .attr("d", line);
+    .attr("d", line)
+    .attr("clip-path", "url(#clip)");
 
     // Zoomfunktion hinzufügen
+
     const zoom = d3
     .zoom()
     .scaleExtent([1, 8]) // Zoomfaktor (1 bis 8)
