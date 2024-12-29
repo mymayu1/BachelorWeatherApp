@@ -34,7 +34,7 @@ function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
         <h1>${temperatureNow}°C</h1>
         <h6>H:${temperatureMax}°C</h6>
         <h6>T:${temperatureMin}°C</h6>
-        <h6>Gefühlt: ${temperatureApparent}°</h6>
+        <h6>Gefühlt: ${temperatureApparent}°C</h6>
       </p>
       <p>
         <h4>Regenfall: ${precipitationAvg} %</h4>

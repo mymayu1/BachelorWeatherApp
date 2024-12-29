@@ -253,6 +253,10 @@ document.addEventListener('DOMContentLoaded', () => {
     { time: "2024-12-22T06:00:00", temp: 10 },
     { time: "2024-12-22T09:00:00", temp: 15 },
     { time: "2024-12-22T12:00:00", temp: 12 },
+    { time: "2024-12-22T15:00:00", temp: 14 },
+    { time: "2024-12-22T18:00:00", temp: 9 },
+    { time: "2024-12-22T21:00:00", temp: 6 },
+    { time: "2024-12-23T00:00:00", temp: 4 },
   ];
 
   createLineChart("#chartContainer", dummyData);
