@@ -80,11 +80,16 @@ function processWeatherData(weatherData, city) {
   console.log("Tagesvorhersage:", dailyForecast);
 
  
-  const hourlyData = forecast.timelines.hourly.map((entry) => ({
+  const hourlyForecastData = forecast.timelines.hourly.map((entry) => ({
     time: entry.time || "Zeit nicht verfügbar",
     temp: entry.values.temperature,
 
   }));
+
+  console.log("Daten für Chart:", hourlyForecastData);
+
+  // Erstellt den Line Chart
+  processForecastData(hourlyForecastData);
 
   const allWeatherCodes = realtime.data.values.weatherCode;
 
@@ -160,7 +165,7 @@ function processWeatherData(weatherData, city) {
       return "Zeitfehler";
     }
   }
-  console.log("Stundenwerte (hourlyData):", hourlyData);
+  console.log("Stundenwerte (hourlyForecastData):", hourlyForecastData);
   console.log("Beispiel einer hourly-Einheit:", forecast.timelines.hourly[0]);
 
 
@@ -170,7 +175,7 @@ function processWeatherData(weatherData, city) {
 
   const cityName = city;
 
-  console.log('Wetterdaten für displayWeatherData:', {sunRise, sunSet, cityName, weatherData });
+  console.log('Wetterdaten für displayWeatherData:', { sunRise, sunSet, cityName, weatherData });
 
 }
 
@@ -246,22 +251,32 @@ document.getElementById('cityInput').addEventListener('keyup', (event) => {
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const dummyData = [
-    { time: "2024-12-22T00:00:00", temp: 5 },
-    { time: "2024-12-22T03:00:00", temp: 7 },
-    { time: "2024-12-22T06:00:00", temp: 10 },
-    { time: "2024-12-22T09:00:00", temp: 15 },
-    { time: "2024-12-22T12:00:00", temp: 12 },
-    { time: "2024-12-22T15:00:00", temp: 14 },
-    { time: "2024-12-22T18:00:00", temp: 9 },
-    { time: "2024-12-22T21:00:00", temp: 6 },
-    { time: "2024-12-23T00:00:00", temp: 4 },
-  ];
+function getHourlyForecastData(forecast, currentTime){
+  const currentHour = new Date(currentTime).getHours();
 
-  createLineChart("#chartContainer", dummyData);
-  console.log("Data for Line Chart:", dummyData);
+  // Filtere stündliche Daten ab der aktuellen Stunde
+  const hourlyData = forecast.filter((entry) => {
+    const entryHour = new Date(entry.time).getHours();
+    return entryHour >= currentHour;
+  });
+
+  return hourlyData;
+
+}
+function processForecastData(hourlyForecastData){
+
+  const currentTime = new Date();
+  const hourlyData = getHourlyForecastData(hourlyForecastData, currentTime);
+
+  // Konvertiert Daten ins richtige Format für den Chart
+  const chartData = hourlyData.map((d) => ({
+    time: d.time,
+    temp: d.temp,
+}));
 
 
-});
+  createLineChart("#chartContainer", chartData);
+  console.log("Data for Line Chart:", chartData);
 
+  
+}

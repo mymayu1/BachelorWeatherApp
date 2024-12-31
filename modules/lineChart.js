@@ -26,6 +26,10 @@ export function createLineChart(containerId, data) {
     .domain([d3.min(data, d => d.temp) - 5, d3.max(data, d => d.temp) + 5]) // Temperaturbereich
     .range([height, 0]); // Pixelbereich (invertiert)
 
+    console.log("xScale Domain:", xScale.domain());
+    console.log("yScale Domain:", yScale.domain()); 
+  
+
     //Clippath
     chartGroup
     .append("defs")
@@ -91,5 +95,6 @@ export function createLineChart(containerId, data) {
     }
 
 
+    
 
 }
