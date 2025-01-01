@@ -270,9 +270,14 @@ function processForecastData(hourlyForecastData){
 
   // Konvertiert Daten ins richtige Format für den Chart
   const chartData = hourlyData.map((d) => ({
-    time: d.time,
-    temp: d.temp,
-}));
+  time: d.time,
+  temp: d.temp,
+  }));
+
+  // Alte SVG entfernen
+  const chartContainer = document.getElementById('chartContainer');
+  chartContainer.innerHTML = ''; 
+
 
 
   createLineChart("#chartContainer", chartData);
