@@ -4,9 +4,9 @@ export function createLineChart(containerId, data) {
         return;
     }
     // Masse und Margins
-    const margin = { top: 20, right: 30, bottom: 50, left: 50 };
-    const width = 800 - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
+    const margin = { top: 20, right: 50, bottom: 50, left: 50 };
+    const width = 1200 - margin.left - margin.right;
+    const height = 500 - margin.top - margin.bottom;
 
     // SVG-Container erstellen
     const svg = d3
@@ -43,7 +43,7 @@ export function createLineChart(containerId, data) {
 
 
     // X- und Y-Achsen erstellen
-    const xAxis = d3.axisBottom(xScale).ticks(8).tickSizeOuter(0).tickFormat(d3.timeFormat("%H:%M"));
+    const xAxis = d3.axisBottom(xScale).ticks(5).tickFormat(d3.timeFormat("%A"));
     const yAxis = d3.axisLeft(yScale);
 
     // X-Achse hinzufügen
@@ -90,6 +90,13 @@ export function createLineChart(containerId, data) {
         const newXScale = transform.rescaleX(xScale);
 
         xAxisGroup.call(xAxis.scale(newXScale));
+
+        // Ändere die Ticks je nach Zoom-Level
+        if (transform.k > 3) { // Wenn gezoomt wird (k > 2), zeige Uhrzeiten
+            xAxis.ticks(d3.timeHour).ticks(12).tickFormat(d3.timeFormat("%H:%M"));
+        } else { // Wenn weit herausgezoomt wird, zeige Wochentage
+            xAxis.ticks(d3.timeDay).tickFormat(d3.timeFormat("%A"));
+        }
 
         linePath.attr("d", line.x((d) => newXScale(new Date(d.time))))
     }

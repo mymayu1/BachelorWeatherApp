@@ -109,10 +109,10 @@ function processWeatherData(weatherData, city) {
 
     const weatherDataShow = {
       weatherCode: weatherDescription || "Unbekannt",
-      temperatureNow: realtime.data.values?.temperature ?? "N/A",
-      temperatureMax: dailyForecast.temperatureMax || "N/A",
-      temperatureMin: dailyForecast.temperatureMin || "N/A",
-      temperatureApparent: realtime.data.values.temperatureApparent || "N/A",
+      temperatureNow: Math.floor(realtime.data.values?.temperature) ?? "N/A",
+      temperatureMax: Math.floor(dailyForecast.temperatureMax) || "N/A",
+      temperatureMin: Math.floor(dailyForecast.temperatureMin) || "N/A",
+      temperatureApparent: Math.floor(realtime.data.values.temperatureApparent) || "N/A",
       precipitationAvg: dailyForecast?.precipitationProbabilityAvg ?? "Daten fehlen",
       windSpeed: realtime.data.values.windSpeed || "N/A",
       windDirection: realtime.data.values.windDirection || "N/A",
@@ -266,12 +266,20 @@ function getHourlyForecastData(forecast, currentTime){
 function processForecastData(hourlyForecastData){
 
   const currentTime = new Date();
-  const hourlyData = getHourlyForecastData(hourlyForecastData, currentTime);
+  //const hourlyData = getHourlyForecastData(hourlyForecastData, currentTime);
+  const weekForecast = new Date();
+  weekForecast.setDate(currentTime.getDate() + 7);
+
+  //Filter damit nur die nächsten 7 Tage angezeigt werden
+  const filteredData = hourlyForecastData.filter(d => {
+    const dataTime = new Date(d.time);
+    return dataTime >= currentTime && dataTime <= weekForecast;
+  })
 
   // Konvertiert Daten ins richtige Format für den Chart
-  const chartData = hourlyData.map((d) => ({
+  const chartData = filteredData.map((d) => ({
   time: d.time,
-  temp: d.temp,
+  temp: Math.floor(d.temp),
   }));
 
   // Alte SVG entfernen
