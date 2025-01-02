@@ -23,27 +23,20 @@ function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
 
     const leftInformation = document.getElementById('leftInformation')
     if (leftInformation) {
-      leftInformation.textContent = 
-      `Wetterzustand: ${weatherCode}`;
-    }
+      leftInformation.querySelector('h1').textContent = weatherCode;
+  }
 
     const rightInformation = document.getElementById('rightInformation')
     if (rightInformation) {
-      rightInformation.innerHTML = `
-      <p>
-        <h1>${temperatureNow}°C</h1>
-        <h6>H:${temperatureMax}°C</h6>
-        <h6>T:${temperatureMin}°C</h6>
-        <h6>Gefühlt: ${temperatureApparent}°C</h6>
-      </p>
-      <p>
-        <h4>Regenfall: ${precipitationAvg} %</h4>
-        <h4>Wind: ${windSpeed} km/h (${windDirection}°)</h4>
-        <h4>Luftfeuchtigkeit: ${humidity}%</h4>
-        <h4>UV-Index: ${uvIndex}</h4>
-      </p>
-      `;
-    }
+      rightInformation.querySelector('#currTemp').textContent = `${temperatureNow}°C`;
+      rightInformation.querySelector('#highTemp').textContent = `H:${temperatureMax}°C`;
+      rightInformation.querySelector('#lowTemp').textContent = `T:${temperatureMin}°C`;
+      rightInformation.querySelector('#feelsLike').textContent = `Gefühlt: ${temperatureApparent}°C`;
+      rightInformation.querySelector('#precip').textContent = `Regenfall: ${precipitationAvg} %`;
+      rightInformation.querySelector('#windSpeed').textContent = `Wind: ${windSpeed} km/h (${windDirection}°)`;
+      rightInformation.querySelector('#humidity').textContent = `Luftfeuchtigkeit: ${humidity}%`;
+      rightInformation.querySelector('#uvI').textContent = `UV-Index: ${uvIndex}`;
+  }
 }
 
 // Export der Funktion
