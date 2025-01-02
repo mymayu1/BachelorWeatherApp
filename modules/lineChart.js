@@ -1,4 +1,4 @@
-export function createLineChart(containerId, data) {
+export function createLineChart(containerId, data, temperatureHiLo) {
     if (!data || data.length === 0) {
         console.error("Keine gültigen Daten für das Diagramm übergeben.");
         return;
@@ -40,6 +40,34 @@ export function createLineChart(containerId, data) {
     .attr("y", 0)
     .attr("width", width)
     .attr("height", height);
+
+    // // Text für Höchsttemperaturen hinzufügen
+    // chartGroup
+    // .selectAll(".high-temp-label")
+    // .data(data)
+    // .enter()
+    // .append("text")
+    // .attr("class", "high-temp-label")
+    // .attr("x", (d) => xScale(new Date(d.time))) // Position auf der X-Achse
+    // .attr("y", (d) => yScale(d.tempMax) - 10) // Position knapp oberhalb der Linie
+    // .attr("text-anchor", "middle") // Zentriere den Text
+    // .style("font-size", "12px")
+    // .style("fill", "red") // Optional: Farbe für die Höchsttemperatur
+    // .text((d) => `${d.tempMax}°C`); // Der tatsächliche Wert
+
+    // // Text für Tiefsttemperaturen hinzufügen
+    // chartGroup
+    // .selectAll(".low-temp-label")
+    // .data(data)
+    // .enter()
+    // .append("text")
+    // .attr("class", "low-temp-label")
+    // .attr("x", (d) => xScale(new Date(d.time))) // Position auf der X-Achse
+    // .attr("y", (d) => yScale(d.tempMin) + 15) // Position knapp unterhalb der Linie
+    // .attr("text-anchor", "middle") // Zentriere den Text
+    // .style("font-size", "12px")
+    // .style("fill", "blue") // Optional: Farbe für die Tiefsttemperatur
+    // .text((d) => `${d.tempMin}°C`); // Der tatsächliche Wert
 
 
     // X- und Y-Achsen erstellen
@@ -99,9 +127,12 @@ export function createLineChart(containerId, data) {
         }
 
         linePath.attr("d", line.x((d) => newXScale(new Date(d.time))))
+
+        // Aktualisiere Position der Texte
+        // chartGroup.selectAll(".high-temp-label")
+        // .attr("x", (d) => newXScale(d.date));
+
+        // chartGroup.selectAll(".low-temp-label")
+        // .attr("x", (d) => newXScale(d.date));
     }
-
-
-    
-
 }

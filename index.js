@@ -72,12 +72,28 @@ function processWeatherData(weatherData, city) {
     return;
   }
 
-  const dailyForecast = forecast.timelines?.daily?.[0]?.values;
+  const todayForecast = forecast.timelines?.daily?.[0]?.values;
 
-  if (!dailyForecast) {
+  const dailyForecast = forecast.timelines?.daily;
+
+  if (!todayForecast) {
     throw new Error('Forecast-Daten fehlen oder sind unvollständig!');
   }
-  console.log("Tagesvorhersage:", dailyForecast);
+  console.log("Tagesvorhersage:", todayForecast);
+
+  //Extrahiere die Höchst- und Tiefsttemperaturen sowie das Datum
+  const temperatureHiLo = dailyForecast.map((entry) => {
+    if (!entry.time || !entry.values.temperatureMax || !entry.values.temperatureMin) {
+      console.error("Fehler: Ungültige Daten für", entry);
+      return null;
+    }
+    return {
+      date: entry.time, // Zeitstempel
+      tempMax: entry.values.temperatureMax, // Höchsttemperatur
+      tempMin: entry.values.temperatureMin, // Tiefsttemperatur
+    };
+  }).filter(item => item !== null); // Filtere ungültige Einträge heraus
+
 
  
   const hourlyForecastData = forecast.timelines.hourly.map((entry) => ({
@@ -86,10 +102,11 @@ function processWeatherData(weatherData, city) {
 
   }));
 
+
   console.log("Daten für Chart:", hourlyForecastData);
 
   // Erstellt den Line Chart
-  processForecastData(hourlyForecastData);
+  processForecastData(hourlyForecastData, temperatureHiLo);
 
   const allWeatherCodes = realtime.data.values.weatherCode;
 
@@ -101,8 +118,8 @@ function processWeatherData(weatherData, city) {
   }
   //Zeitzone basierend auf den Koordinaten
   const timeZone = getTimeZone(latitude, longitude);
-  const sunRiseLocal = convertToLocalTime(dailyForecast.sunriseTime, timeZone);
-  const sunSetLocal = convertToLocalTime(dailyForecast.sunsetTime, timeZone);
+  const sunRiseLocal = convertToLocalTime(todayForecast.sunriseTime, timeZone);
+  const sunSetLocal = convertToLocalTime(todayForecast.sunsetTime, timeZone);
 
   loadWeatherData().then((weatherCodeDescriptions) => {
     const weatherDescription = weatherCodeDescriptions[allWeatherCodes] || "Beschreibung nicht verfügbar";
@@ -110,10 +127,10 @@ function processWeatherData(weatherData, city) {
     const weatherDataShow = {
       weatherCode: weatherDescription || "Unbekannt",
       temperatureNow: Math.floor(realtime.data.values?.temperature) ?? "N/A",
-      temperatureMax: Math.floor(dailyForecast.temperatureMax) || "N/A",
-      temperatureMin: Math.floor(dailyForecast.temperatureMin) || "N/A",
-      temperatureApparent: Math.floor(realtime.data.values.temperatureApparent) || "N/A",
-      precipitationAvg: dailyForecast?.precipitationProbabilityAvg ?? "Daten fehlen",
+      temperatureMax: Math.floor(todayForecast.temperatureMax) ?? "N/A",
+      temperatureMin: Math.floor(todayForecast.temperatureMin) ?? "N/A",
+      temperatureApparent: Math.floor(realtime.data.values.temperatureApparent) ?? "N/A",
+      precipitationAvg: todayForecast?.precipitationProbabilityAvg ?? "Daten fehlen",
       windSpeed: realtime.data.values.windSpeed || "N/A",
       windDirection: realtime.data.values.windDirection || "N/A",
       humidity: realtime.data.values.humidity || "N/A",
@@ -169,8 +186,8 @@ function processWeatherData(weatherData, city) {
   console.log("Beispiel einer hourly-Einheit:", forecast.timelines.hourly[0]);
 
 
-  const sunRise = dailyForecast.sunriseTime;
-  const sunSet = dailyForecast.sunsetTime;
+  const sunRise = todayForecast.sunriseTime;
+  const sunSet = todayForecast.sunsetTime;
 
 
   const cityName = city;
@@ -178,6 +195,7 @@ function processWeatherData(weatherData, city) {
   console.log('Wetterdaten für displayWeatherData:', { sunRise, sunSet, cityName, weatherData });
 
 }
+//console.log("temperatureHiLo:", temperatureHiLo);
 
 async function loadWeatherData() {
   try {
@@ -266,11 +284,10 @@ function getHourlyForecastData(forecast, currentTime){
 function processForecastData(hourlyForecastData){
 
   const currentTime = new Date();
-  //const hourlyData = getHourlyForecastData(hourlyForecastData, currentTime);
   const weekForecast = new Date();
-  weekForecast.setDate(currentTime.getDate() + 7);
+  weekForecast.setDate(currentTime.getDate() + 5);
 
-  //Filter damit nur die nächsten 7 Tage angezeigt werden
+  //Filter damit nur die nächsten 5 Tage angezeigt werden
   const filteredData = hourlyForecastData.filter(d => {
     const dataTime = new Date(d.time);
     return dataTime >= currentTime && dataTime <= weekForecast;
@@ -289,7 +306,6 @@ function processForecastData(hourlyForecastData){
 
 
   createLineChart("#chartContainer", chartData);
-  console.log("Data for Line Chart:", chartData);
 
   
 }
