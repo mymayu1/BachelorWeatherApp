@@ -23,7 +23,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .range([0, width]); // Pixelbereich
 
     const yScale = d3.scaleLinear()
-    .domain([d3.min(data, d => d.temp) - 3, d3.max(data, d => d.temp) + 3]) // Temperaturbereich
+    .domain([d3.min(data, d => d.temp) - 5, d3.max(data, d => d.temp) + 5]) // Temperaturbereich
     .range([height, 0]); // Pixelbereich (invertiert)
 
     console.log("xScale Domain:", xScale.domain());

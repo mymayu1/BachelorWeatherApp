@@ -300,12 +300,27 @@ function processForecastData(hourlyForecastData){
   }));
 
   // Alte SVG entfernen
-  const chartContainer = document.getElementById('chartContainer');
+  const chartContainer = document.getElementById('forecastContainer');
   chartContainer.innerHTML = ''; 
 
 
 
-  createLineChart("#chartContainer", chartData);
+  createLineChart("#forecastContainer", chartData);
 
-  
 }
+
+document.getElementById("forecastTab").addEventListener("click", () => {
+  document.getElementById("forecastContainer").classList.add("active");
+  document.getElementById("realtimeContainer").classList.remove("active");
+  document.getElementById("forecastContainer").classList.remove("hidden");
+  document.getElementById("realtimeContainer").classList.add("hidden");
+});
+
+document.getElementById("realtimeTab").addEventListener("click", () => {
+  document.getElementById("realtimeContainer").classList.add("active");
+  document.getElementById("forecastContainer").classList.remove("active");
+  document.getElementById("realtimeContainer").classList.remove("hidden");
+  document.getElementById("forecastContainer").classList.add("hidden");
+});
+
+
