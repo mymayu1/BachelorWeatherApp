@@ -41,34 +41,6 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .attr("width", width)
     .attr("height", height);
 
-    // // Text für Höchsttemperaturen hinzufügen
-    // chartGroup
-    // .selectAll(".high-temp-label")
-    // .data(data)
-    // .enter()
-    // .append("text")
-    // .attr("class", "high-temp-label")
-    // .attr("x", (d) => xScale(new Date(d.time))) // Position auf der X-Achse
-    // .attr("y", (d) => yScale(d.tempMax) - 10) // Position knapp oberhalb der Linie
-    // .attr("text-anchor", "middle") // Zentriere den Text
-    // .style("font-size", "12px")
-    // .style("fill", "red") // Optional: Farbe für die Höchsttemperatur
-    // .text((d) => `${d.tempMax}°C`); // Der tatsächliche Wert
-
-    // // Text für Tiefsttemperaturen hinzufügen
-    // chartGroup
-    // .selectAll(".low-temp-label")
-    // .data(data)
-    // .enter()
-    // .append("text")
-    // .attr("class", "low-temp-label")
-    // .attr("x", (d) => xScale(new Date(d.time))) // Position auf der X-Achse
-    // .attr("y", (d) => yScale(d.tempMin) + 15) // Position knapp unterhalb der Linie
-    // .attr("text-anchor", "middle") // Zentriere den Text
-    // .style("font-size", "12px")
-    // .style("fill", "blue") // Optional: Farbe für die Tiefsttemperatur
-    // .text((d) => `${d.tempMin}°C`); // Der tatsächliche Wert
-
 
     // X- und Y-Achsen erstellen
     const xAxis = d3.axisBottom(xScale).ticks(5).tickFormat(d3.timeFormat("%A"));
@@ -102,8 +74,14 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .attr("d", line)
     .attr("clip-path", "url(#clip)");
 
-    // Zoomfunktion hinzufügen
+    function filterEveryThreeHours(data) {
+        return data.filter(d => {
+            const hour = new Date(d.time).getHours();
+            return hour % 3 === 0; // Nur Daten, bei denen die Stunde ein Vielfaches von 3 ist
+        });
+    }
 
+    // Zoomfunktion hinzufügen
     const zoom = d3
     .zoom()
     .scaleExtent([1, 8]) // Zoomfaktor (1 bis 8)
@@ -117,22 +95,41 @@ export function createLineChart(containerId, data, temperatureHiLo) {
         const transform = event.transform;
         const newXScale = transform.rescaleX(xScale);
 
+       // xAxis.ticks(d3.timeHour.every(3)).tickFormat(d3.timeFormat("%H:%M"));
         xAxisGroup.call(xAxis.scale(newXScale));
+        
+        const filteredData = filterEveryThreeHours(data);  
 
+        
         // Ändere die Ticks je nach Zoom-Level
-        if (transform.k > 3) { // Wenn gezoomt wird (k > 2), zeige Uhrzeiten
+        if (transform.k > 3) { // Wenn gezoomt wird (k > 3), zeige Uhrzeiten
             xAxis.ticks(d3.timeHour).ticks(12).tickFormat(d3.timeFormat("%H:%M"));
+            filteredData;
+           
         } else { // Wenn weit herausgezoomt wird, zeige Wochentage
             xAxis.ticks(d3.timeDay).tickFormat(d3.timeFormat("%A"));
+
         }
+        chartGroup.selectAll(".temp-label").remove();   
 
+        // Füge neue Temperaturtexte hinzu
+        chartGroup
+        .selectAll(".temp-label")
+        .data(filteredData)
+        .enter()
+        .append("text")
+        .attr("class", "temp-label")
+        .attr("x", d => newXScale(new Date(d.time)))
+        .attr("y", d => yScale(d.temp) - 50)
+        .attr("text-anchor", "middle")
+        .style("font-size", "8px")
+        .style("fill", "black")
+        .text(d => `${d.temp}°C`);
+
+    
         linePath.attr("d", line.x((d) => newXScale(new Date(d.time))))
-
-        // Aktualisiere Position der Texte
-        // chartGroup.selectAll(".high-temp-label")
-        // .attr("x", (d) => newXScale(d.date));
-
-        // chartGroup.selectAll(".low-temp-label")
-        // .attr("x", (d) => newXScale(d.date));
+        // Textposition aktualisieren
+        //  chartGroup.selectAll(".temp-label")
+        //     .attr("x", d => newXScale(new Date(d.time)));
     }
 }

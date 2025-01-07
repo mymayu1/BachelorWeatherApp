@@ -64,8 +64,21 @@
                             </p>
                         </div>
                     </div>
-                    <div id="chartContainer">
-                        <svg></svg>
+                    <div id="tabs" class="tabs">
+                        <button id="realtimeTab" class="tab-button">Echtzeit</button>
+                        <button id="forecastTab" class="tab-button">Vorhersage</button>
+                    </div>                    
+                    <div id="tabContent">
+                        <div id="realtimeContainer" class="tab-content active">
+                            <div id="chartContainer">
+                                <svg></svg>
+                            </div>
+                        </div>
+                        <div id="forecastContainer" class="tab-content hidden">
+                            <div id="forecastChartContainer">
+                                <svg></svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
