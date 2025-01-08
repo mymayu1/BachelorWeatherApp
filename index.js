@@ -2,6 +2,8 @@ import { updateTime } from './modules/header.js';
 import { displayWeatherData } from './modules/weatherDetails.js';
 const { DateTime } = luxon;
 import { createLineChart } from './modules/lineChart.js';
+import { createRealtimeChart } from './modules/lineChart.js';
+
 
 updateTime();
 
@@ -61,6 +63,56 @@ function getFromCache(key) {
   }
   return item.data;
 }
+// Funktion, um Echtzeitdaten periodisch abzurufen
+async function fetchRealtimeData(city) {
+  try {
+    const realtimeResponse = await fetch(
+      `https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`,
+      options
+    );
+    const realtimeData = await realtimeResponse.json();
+    const currentTemp = Math.floor(realtimeData.data.values.temperature) || "N/A";
+    const currentTime = new Date(realtimeData.data.time).toISOString();
+
+    return { time: currentTime, temp: currentTemp }; 
+  } catch (error) {
+    console.error("Fehler beim Abrufen der Echtzeitdaten:", error);
+    return null;
+  }
+}
+
+// Echtzeitdaten regelmäßig aktualisieren
+function startRealtimeUpdates(city, updateInterval = 60000, updateChartCallback) {
+  let realtimeData = [];
+  const maxDataPoints = 100; // Begrenzung der Punkte für bessere Performance
+
+  async function updateChart() {
+    const newRealtimeData = await fetchRealtimeData(city);
+    if (newRealtimeData) {
+      // Echtzeitdaten aktualisieren
+      realtimeData.push(newRealtimeData);
+
+      // Entferne alte Daten, wenn die maximale Punktzahl überschritten wird
+      if (realtimeData.length > maxDataPoints) {
+        realtimeData.shift();
+      }
+
+      // Echtzeit-Chart aktualisieren
+      if (typeof updateChartCallback === "function") {
+        updateChartCallback(realtimeData);
+      } else {
+        console.error("updateChartCallback ist keine Funktion!");
+      }
+    }
+  }
+
+  // Initialen Abruf starten
+  updateChart();
+  // Intervall für Updates setzen
+  setInterval(updateChart, updateInterval);
+}
+
+
 
 function processWeatherData(weatherData, city) {
   const { realtime, forecast } = weatherData;
@@ -246,7 +298,19 @@ async function fetchWeatherData(city) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  fetchWeatherData('Berlin');
+  const city = "Berlin"; // Standardstadt
+  fetchWeatherData(city);
+
+  // Echtzeitdaten-Chart initialisieren
+  const realtimeChart = createRealtimeChart("#realtimeContainer", []);
+  
+  // Funktion zum Aktualisieren des Echtzeit-Charts
+  function updateRealtimeChart(data) {
+    realtimeChart.update(data);
+  }
+  // Echtzeitdaten starten
+  startRealtimeUpdates(city, 60000, updateRealtimeChart); // Updates alle 60 Sekunden
+
 });
 document.getElementById('searchButton').addEventListener('click', () => {
 
@@ -302,8 +366,6 @@ function processForecastData(hourlyForecastData){
   // Alte SVG entfernen
   const chartContainer = document.getElementById('forecastContainer');
   chartContainer.innerHTML = ''; 
-
-
 
   createLineChart("#forecastContainer", chartData);
 

@@ -133,3 +133,49 @@ export function createLineChart(containerId, data, temperatureHiLo) {
         //     .attr("x", d => newXScale(new Date(d.time)));
     }
 }
+export function createRealtimeChart(containerId, data) {
+    const margin = { top: 20, right: 50, bottom: 20, left: 50 };
+    const width = 1200 - margin.left - margin.right;
+    const height = 380 - margin.top - margin.bottom;
+  
+    const svg = d3
+      .select(containerId)
+      .append("svg")
+      .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+      .attr("preserveAspectRatio", "xMidYMid meet");
+  
+    const chartGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+  
+    const xScale = d3.scaleTime().range([0, width]);
+    const yScale = d3.scaleLinear().range([height, 0]);
+  
+    const xAxisGroup = chartGroup
+      .append("g")
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0, ${height})`);
+  
+    const yAxisGroup = chartGroup.append("g").attr("class", "y-axis");
+  
+    const line = d3
+      .line()
+      .x(d => xScale(new Date(d.time)))
+      .y(d => yScale(d.temp));
+  
+    const linePath = chartGroup.append("path").attr("fill", "none").attr("stroke", "steelblue").attr("stroke-width", 2);
+  
+    return {
+      update: function (data) {
+        // Update Skalen
+        xScale.domain(d3.extent(data, d => new Date(d.time)));
+        yScale.domain([d3.min(data, d => d.temp) - 5, d3.max(data, d => d.temp) + 5]);
+  
+        // Achsen aktualisieren
+        xAxisGroup.call(d3.axisBottom(xScale).ticks(5).tickFormat(d3.timeFormat("%H:%M")));
+        yAxisGroup.call(d3.axisLeft(yScale));
+  
+        // Linie aktualisieren
+        linePath.datum(data).attr("d", line);
+      },
+    };
+  }
+  
