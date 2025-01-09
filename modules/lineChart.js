@@ -13,7 +13,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .select(containerId)
     .append("svg")
     .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-    .attr("preserveAspectRatio", "xMidYMid meet")
+    .attr("preserveAspectRatio", "xMidYMid meet");
 
     const chartGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -39,7 +39,8 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .attr("x", 0)
     .attr("y", 0)
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height)
+    .attr("clip-path", "url(#clip)");
 
 
     // X- und Y-Achsen erstellen
@@ -70,7 +71,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .datum(data)
     .attr("fill", "none")
     .attr("stroke", "steelblue")
-    .attr("stroke-width", 2)
+    .attr("stroke-width", 1)
     .attr("d", line)
     .attr("clip-path", "url(#clip)");
 
@@ -161,7 +162,10 @@ export function createRealtimeChart(containerId, data) {
       .x(d => xScale(new Date(d.time)))
       .y(d => yScale(d.temp));
   
-    const linePath = chartGroup.append("path").attr("fill", "none").attr("stroke", "steelblue").attr("stroke-width", 2);
+    const linePath = chartGroup.append("path")
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1);
   
     return {
       update: function (data) {

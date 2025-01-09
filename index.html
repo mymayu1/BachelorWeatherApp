@@ -10,9 +10,9 @@
 
 </head>
 <body class="bg-gray-50 text-gray-800"> 
-    <div id="container" class="w-full">
+    <div id="container" class="w-full h-full">
         <!--Kopfzeile-->
-        <header class="bg-white shadow p-4">
+        <header class="bg-gray-50 p-4">
             <nav class="flex justify-between items-center">
                 <div id="time" class="text-lg font-semibold"></div>
                 <div class="flex items-center space-x-10">
@@ -32,12 +32,12 @@
         </header>
 
         <!--Hauptkontent-->
-        <main class="flex-grow w-full px-4 py-2">
+        <main class="flex-grow w-full h-full px-4 py-2">
             <div id="topBar" class="grid grid-cols-3 gap-4 mb-6">
                     <p id="location" class="text-lg font-semibold">Standort:</p>
                     <div class="grid grid-cols-2 gap-4">
-                    <p id="sunrise" class="text-sm">Sonnenaufgang:</p>
-                    <p id="sunset" class="text-sm">Sonnenuntergang:</p>
+                    <p id="sunrise" class="text-base">Sonnenaufgang:</p>
+                    <p id="sunset" class="text-base">Sonnenuntergang:</p>
                     </div>
                 </div>
             <div id="weatherCanvas" class="p-6">
@@ -67,14 +67,14 @@
                     </div>
                 </div>
             </div>
-            <div id="tabs" class="tabs my-6">
+            <div id="tabs" class="tabs left-0 right-0 backdrop-blur-md py-4 px-6 space-x-4">
                 <button id="realtimeTab" class="px-4 py-2 bg-white text-gray-700 rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-200 transition">Echtzeit</button>
                 <button id="forecastTab" class="px-4 py-2 bg-white text-gray-700 rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-200 transition">Vorhersage</button>
             </div>                    
-            <div id="tabContent">
-                <div id="realtimeContainer" class="tab-content hidden bg-gray-100 p-4 rounded-lg shadow"></div>
+            <div id="tabContent" class="absolute bottom-16 left-0 right-0 px-4">
+                <div id="realtimeContainer" class="tab-content hidden bg-gray-50 p-4"></div>
                 
-                <div id="forecastContainer" class="tab-content active bg-gray-100 p-4 rounded-lg shadow"></div>
+                <div id="forecastContainer" class="tab-content active bg-gray-50 p-4"></div>
             </div>
         </main>
     </div>
