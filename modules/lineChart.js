@@ -134,7 +134,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     }
 }
 export function createRealtimeChart(containerId, data) {
-    const margin = { top: 20, right: 50, bottom: 20, left: 50 };
+    const margin = { top: 10, right: 50, bottom: 50, left: 50 };
     const width = 1200 - margin.left - margin.right;
     const height = 380 - margin.top - margin.bottom;
   

@@ -29,8 +29,8 @@ function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
     const rightInformation = document.getElementById('rightInformation')
     if (rightInformation) {
       rightInformation.querySelector('#currTemp').textContent = `${temperatureNow}°C`;
-      rightInformation.querySelector('#highTemp').textContent = `H:${temperatureMax}°C`;
-      rightInformation.querySelector('#lowTemp').textContent = `T:${temperatureMin}°C`;
+      rightInformation.querySelector('#highTemp').textContent = `${temperatureMax}°C`;
+      rightInformation.querySelector('#lowTemp').textContent = `${temperatureMin}°C`;
       rightInformation.querySelector('#feelsLike').textContent = `Gefühlt: ${temperatureApparent}°C`;
       rightInformation.querySelector('#precip').textContent = `Regenfall: ${precipitationAvg} %`;
       rightInformation.querySelector('#windSpeed').textContent = `Wind: ${windSpeed} km/h (${windDirection}°)`;
