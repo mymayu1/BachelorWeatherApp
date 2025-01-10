@@ -5,8 +5,8 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     }
     // Masse und Margins
     const margin = { top: 20, right: 50, bottom: 20, left: 50 };
-    const width = 1200 - margin.left - margin.right;
-    const height = 380 - margin.top - margin.bottom;
+    const width = 1800 - margin.left - margin.right;
+    const height = 305 - margin.top - margin.bottom;
 
     // SVG-Container erstellen
     const svg = d3
@@ -71,7 +71,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .datum(data)
     .attr("fill", "none")
     .attr("stroke", "steelblue")
-    .attr("stroke-width", 1)
+    .attr("stroke-width", 3)
     .attr("d", line)
     .attr("clip-path", "url(#clip)");
 
@@ -123,9 +123,10 @@ export function createLineChart(containerId, data, temperatureHiLo) {
         .attr("x", d => newXScale(new Date(d.time)))
         .attr("y", d => yScale(d.temp) - 50)
         .attr("text-anchor", "middle")
-        .style("font-size", "8px")
-        .style("fill", "black")
-        .text(d => `${d.temp}°C`);
+        .style("font-size", "12px")
+        .style("fill", "white")
+        .text(d => `${d.temp}°C`)
+        .attr("clip-path", "url(#clip)");
 
     
         linePath.attr("d", line.x((d) => newXScale(new Date(d.time))))
@@ -135,9 +136,9 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     }
 }
 export function createRealtimeChart(containerId, data) {
-    const margin = { top: 10, right: 50, bottom: 50, left: 50 };
-    const width = 1200 - margin.left - margin.right;
-    const height = 380 - margin.top - margin.bottom;
+    const margin = { top: 20, right: 50, bottom: 20, left: 50 };
+    const width = 1800 - margin.left - margin.right;
+    const height = 305 - margin.top - margin.bottom;
   
     const svg = d3
       .select(containerId)
@@ -165,7 +166,7 @@ export function createRealtimeChart(containerId, data) {
     const linePath = chartGroup.append("path")
     .attr("fill", "none")
     .attr("stroke", "steelblue")
-    .attr("stroke-width", 1);
+    .attr("stroke-width", 3);
   
     return {
       update: function (data) {

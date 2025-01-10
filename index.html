@@ -7,12 +7,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bachelorarbeit</title>
-
 </head>
-<body class="bg-gray-50 text-gray-800"> 
+<body class="bg-gray-900 text-gray-200"> 
     <div id="container" class="w-full h-full">
         <!--Kopfzeile-->
-        <header class="bg-gray-50 p-4">
+        <header class="bg-gray-800 p-4 shadow-md">
             <nav class="flex justify-between items-center">
                 <div id="time" class="text-lg font-semibold"></div>
                 <div class="flex items-center space-x-10">
@@ -22,9 +21,9 @@
                             type="text" 
                             value="Berlin"
                             placeholder="Stadt suchen..." 
-                            class="px-4 py-2 rounded-2xl text-gray-800 focus:outline-none focus:ring focus:ring-blue-500"
+                            class="px-4 py-2 rounded-2xl text-gray-900 focus:outline-none focus:ring focus:ring-blue-500"
                         />
-                        <button id="searchButton" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                        <button id="searchButton" class="bg-white/30 text-white-800 px-4 py-2 rounded-md shadow-md backdrop-blur-md hover:bg-white/40 transition">
                             Suchen
                         </button>
                 </div>
@@ -32,7 +31,7 @@
         </header>
 
         <!--Hauptkontent-->
-        <main class="flex-grow w-full h-full px-4 py-2">
+        <main class="flex-grow w-full h-full px-4 py-1">
             <div id="topBar" class="grid grid-cols-3 gap-4 mb-6">
                     <p id="location" class="text-lg font-semibold">Standort:</p>
                     <div class="grid grid-cols-2 gap-4">
@@ -40,19 +39,19 @@
                     <p id="sunset" class="text-base">Sonnenuntergang:</p>
                     </div>
                 </div>
-            <div id="weatherCanvas" class="p-6">
+            <div id="weatherCanvas" class="p-3">
                 <div id="bodyContainer" class="flex flex-wrap justify-between">
                     <div id="leftInformation" class="p-4">
-                        <h1 id="weatherDescription" class="text-5xl mb-4">Weather Description: kein Wert</h1>
+                        <h1 id="weatherDescription" class="text-5xl mb-4 my-20">Weather Description: kein Wert</h1>
                     </div>
-                    <div id="rightInformation" class="border-1 box-border h-50 w-50 rounded-xl shadow-xl bg-gray-100 p-6">
-                        <h1 id="currTemp" class="text-5xl mb-4 ">kein Wert°C</h1>
+                    <div id="rightInformation" class="border-1 box-border h-50 w-50 rounded-xl shadow-xl bg-gray-800 p-6">
+                        <h1 id="currTemp" class="text-5xl mb-4">kein Wert°C</h1>
                         <div class="flex justify-between mb-4">
-                            <div  class="bg-white box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
+                            <div class="bg-gray-700 box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
                                 <span class="text-sm font-medium">H:</span>
                                 <span id="highTemp" class="text-sm"> kein Wert°</span>
                             </div>
-                            <div  class="bg-white box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
+                            <div class="bg-gray-700 box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
                                 <span class="text-sm font-medium">T:</span>
                                 <span id="lowTemp" class="text-sm"> kein Wert°</span>
                             </div>
@@ -67,14 +66,13 @@
                     </div>
                 </div>
             </div>
-            <div id="tabs" class="tabs left-0 right-0 backdrop-blur-md py-4 px-6 space-x-4">
-                <button id="realtimeTab" class="px-4 py-2 bg-white text-gray-700 rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-200 transition">Echtzeit</button>
-                <button id="forecastTab" class="px-4 py-2 bg-white text-gray-700 rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-200 transition">Vorhersage</button>
+            <div id="tabs" class="tabs flex left-0 right-0 backdrop-blur-md py-4 px-2 space-x-1">
+                <button id="realtimeTab" class="px-7 py-1 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-700 transition">Echtzeit</button>
+                <button id="forecastTab" class="px-7 py-1 mx-5 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-700 transition">Vorhersage</button>
             </div>                    
             <div id="tabContent" class="absolute bottom-16 left-0 right-0 px-4">
-                <div id="realtimeContainer" class="tab-content hidden bg-gray-50 p-4"></div>
-                
-                <div id="forecastContainer" class="tab-content active bg-gray-50 p-4"></div>
+                <div id="realtimeContainer" class="tab-content hidden bg-gray-800 p-2 rounded-lg"></div>
+                <div id="forecastContainer" class="tab-content active bg-gray-800 p-2 rounded-lg"></div>
             </div>
         </main>
     </div>
@@ -82,6 +80,5 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
     <script type="module" src="./index.js"></script>
-    
 </body>
 </html>
