@@ -10,6 +10,67 @@ updateTime();
 const apiKey = 'dtYQZYtAmR1SF1gHaifXh854PrkeC0nm';
 const options = { method: 'GET', headers: { accept: 'application/json' } };
 
+class ApiRateLimiter {
+  constructor({ maxRequestsPerSecond, maxRequestsPerHour }) {
+    this.queue = [];
+    this.isProcessing = false;
+    this.maxRequestsPerSecond = maxRequestsPerSecond;
+    this.maxRequestsPerHour = maxRequestsPerHour;
+    this.requestsInLastSecond = 0;
+    this.requestsInLastHour = 0;
+
+    setInterval(() => {
+      console.log(`Anfragen in der letzten Sekunde: ${this.requestsInLastSecond}`);
+      this.requestsInLastSecond = 0;
+    }, 1000);
+
+    console.log(`Anfragen in der letzten Stunde: ${this.requestsInLastHour}`);
+    setInterval(() => {
+      this.requestsInLastHour = 0;
+    }, 3600000);
+  }
+
+  addRequest(requestFunction) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ requestFunction, resolve, reject });
+      this.processQueue();
+    });
+  }
+
+  async processQueue() {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+
+    while (this.queue.length > 0) {
+      if (
+        this.requestsInLastSecond < this.maxRequestsPerSecond &&
+        this.requestsInLastHour < this.maxRequestsPerHour
+      ) {
+        const { requestFunction, resolve, reject } = this.queue.shift();
+
+        try {
+          this.requestsInLastSecond++;
+          this.requestsInLastHour++;
+          const result = await requestFunction();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      } else {
+        await new Promise((res) => setTimeout(res, 1000));
+      }
+    }
+
+    this.isProcessing = false;
+  }
+}
+
+const apiLimiter = new ApiRateLimiter({ maxRequestsPerSecond: 3, maxRequestsPerHour: 25 });
+
+async function fetchWithLimiter(url, options) {
+  return apiLimiter.addRequest(() => fetch(url, options));
+}
+
 //Funktion zum Speichern von Daten in Cache
 function saveToCache(key, data, callInMinutes = 1) {
   try {
@@ -30,7 +91,7 @@ function saveToCache(key, data, callInMinutes = 1) {
   console.error("Fehler beim Speichern in localStorage:", error);
 }
 }
-function clearExpiredCache() {
+function clearExpiredCache() { 
   const now = new Date();
   Object.keys(localStorage).forEach((key) => {
     try {
@@ -63,18 +124,18 @@ function getFromCache(key) {
   }
   return item.data;
 }
+
+
 // Funktion, um Echtzeitdaten periodisch abzurufen
 async function fetchRealtimeData(city) {
   try {
-    const realtimeResponse = await fetch(
-      `https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`,
-      options
-    );
+    const url = `https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`;
+    const realtimeResponse = await fetchWithLimiter(url, options);
     const realtimeData = await realtimeResponse.json();
     const currentTemp = Math.floor(realtimeData.data.values.temperature) || "N/A";
     const currentTime = new Date(realtimeData.data.time).toISOString();
 
-    return { time: currentTime, temp: currentTemp }; 
+    return { time: currentTime, temp: currentTemp };
   } catch (error) {
     console.error("Fehler beim Abrufen der Echtzeitdaten:", error);
     return null;
@@ -89,15 +150,10 @@ function startRealtimeUpdates(city, updateInterval = 60000, updateChartCallback)
   async function updateChart() {
     const newRealtimeData = await fetchRealtimeData(city);
     if (newRealtimeData) {
-      // Echtzeitdaten aktualisieren
       realtimeData.push(newRealtimeData);
-
-      // Entferne alte Daten, wenn die maximale Punktzahl überschritten wird
       if (realtimeData.length > maxDataPoints) {
         realtimeData.shift();
       }
-
-      // Echtzeit-Chart aktualisieren
       if (typeof updateChartCallback === "function") {
         updateChartCallback(realtimeData);
       } else {
@@ -106,19 +162,25 @@ function startRealtimeUpdates(city, updateInterval = 60000, updateChartCallback)
     }
   }
 
-  // Initialen Abruf starten
-  updateChart();
-  // Intervall für Updates setzen
+  if (realtimeData.length === 0) {
+    updateChart();
+  }
   setInterval(updateChart, updateInterval);
 }
 
-
-
 function processWeatherData(weatherData, city) {
-  const { realtime, forecast } = weatherData;
+  const { realtime, forecast, fetchedAt } = weatherData;
 
+  console.log("Daten abgerufen um:", fetchedAt);
   console.log("Realtime-Daten:", realtime);
   console.log("Forecast-Daten:", forecast);
+
+  const currentTime = new Date().toISOString();
+
+  if (new Date(fetchedAt) < new Date(currentTime)) {
+    console.log("Verwende gespeicherte Forecast-Daten.");
+  }
+
   if (!forecast.timelines || !forecast.timelines.daily || !forecast.timelines.hourly) {
     console.error("Fehler: Forecast-Daten sind unvollständig:", forecast.timelines);
     return;
@@ -274,22 +336,23 @@ async function fetchWeatherData(city) {
   }
 
   try {
-    const realtimeResponse = await fetch(
-      `https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`, options
-    );
+    const currentTime = new Date().toISOString();
+    const realtimeUrl = `https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`;
+    const forecastUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${city}&apikey=${apiKey}`;
+
+    const realtimeResponse = await fetchWithLimiter(realtimeUrl, options);
     const realtimeData = await realtimeResponse.json();
 
-    const forecastResponse = await fetch(
-      `https://api.tomorrow.io/v4/weather/forecast?location=${city}&apikey=${apiKey}`, options
-    );
+    const forecastResponse = await fetchWithLimiter(forecastUrl, options);
     const forecastData = await forecastResponse.json();
 
     const weatherData = {
       realtime: realtimeData,
       forecast: forecastData,
+      fetchedAt: currentTime,
     };
 
-    saveToCache(cacheKey, weatherData, 60);
+    saveToCache(cacheKey, weatherData, 15);
     processWeatherData(weatherData, city);
 
   } catch (error) {
@@ -303,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Echtzeitdaten-Chart initialisieren
   const realtimeChart = createRealtimeChart("#realtimeContainer", []);
-  
+
   // Funktion zum Aktualisieren des Echtzeit-Charts
   function updateRealtimeChart(data) {
     realtimeChart.update(data);
@@ -311,7 +374,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Echtzeitdaten starten
   startRealtimeUpdates(city, 60000, updateRealtimeChart); // Updates alle 60 Sekunden
 
+  const forecastKey = `weatherData_${city}`;
+  const cachedData = getFromCache(forecastKey);
+
+  if (!cachedData) {
+    console.log("Keine gespeicherten Forecast-Daten gefunden, neue Daten abrufen.");
+    fetchWeatherData(city);
+  } else {
+    console.log("Gespeicherte Forecast-Daten verwenden.");
+    processWeatherData(cachedData, city);
+  }
 });
+
 document.getElementById('searchButton').addEventListener('click', () => {
 
   const city = document.getElementById('cityInput').value.trim();
@@ -319,6 +393,8 @@ document.getElementById('searchButton').addEventListener('click', () => {
     alert("Bitte Stadt eingeben!");
     return;
   }
+  const cacheKey = `weatherData_${city}`;
+  localStorage.removeItem(cacheKey);
   fetchWeatherData(city);
 });
 
