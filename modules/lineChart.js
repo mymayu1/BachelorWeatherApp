@@ -6,7 +6,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     // Masse und Margins
     const margin = { top: 20, right: 50, bottom: 20, left: 50 };
     const width = 1800 - margin.left - margin.right;
-    const height = 305 - margin.top - margin.bottom;
+    const height = 500 - margin.top - margin.bottom;
 
     // SVG-Container erstellen
     const svg = d3
@@ -138,7 +138,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
 export function createRealtimeChart(containerId, data) {
     const margin = { top: 20, right: 50, bottom: 20, left: 50 };
     const width = 1800 - margin.left - margin.right;
-    const height = 305 - margin.top - margin.bottom;
+    const height = 500 - margin.top - margin.bottom;
   
     const svg = d3
       .select(containerId)
