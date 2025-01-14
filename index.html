@@ -45,11 +45,11 @@
                         <div class="flex items-start">
                             <h1 id="currTemp" class="text-7xl mb-4 text-#fde294">kein Wert°C</h1>
                             <div class="ml-4 flex flex-col">
-                                <div class="box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap justify-between mb-2">
+                                <div class="bg-gray-700 box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
                                     <span class="text-sm font-medium text-#cde8f9">H:</span>
                                     <span id="highTemp" class="text-sm text-gray-200"> kein Wert°</span>
                                 </div>
-                                <div class="box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap justify-between">
+                                <div class="bg-gray-700 box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
                                     <span class="text-sm font-medium text-#cde8f9">T:</span>
                                     <span id="lowTemp" class="text-sm text-gray-200"> kein Wert°</span>
                                 </div>
@@ -63,7 +63,7 @@
                     </div>
 
                     <!-- Rechte Seite -->
-                    <div id="rightInformation" class="bg- bg rounded-2xl shadow-lg p-6 flex flex-col justify-center items-start space-y-4">
+                    <div id="rightInformation" class="bg-gray-700 box-border rounded-lg shadow-md px-3 py-4 flex flex-nowrap space-x-4 justify-between ">
                         <div class="text-sm space-y-2 w-full text-gray-300">
                             <div class="flex justify-between px-2">
                                 <span class="font-medium">Fühlt sich an wie: </span>
@@ -90,8 +90,8 @@
                 </div>
             </div>
             <div id="tabs" class="tabs flex left-0 right-0 backdrop-blur-md pb-3 px-6 space-x-3 mt-6">
-                <button id="realtimeTab" class="px-7 py-1 bg-#5754A3 text-#cde8f9 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-#fde294 transition">Echtzeit</button>
-                <button id="forecastTab" class="px-7 py-1 mx-5 bg-#5754A3 text-#cde8f9 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-#fde294 transition">Vorhersage</button>
+                <button id="realtimeTab" class="px-7 py-1 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-600 transition">Echtzeit</button>
+                <button id="forecastTab" class="px-7 py-1 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-600 transition">Vorhersage</button>
             </div>                    
             <div id="tabContent" class=" mt-10 px-4 fixed bottom-0 w-full">
                 <div id="realtimeContainer" class="tab-content hidden bg-#5754A3 bg-opacity-75 p-2 rounded-lg"></div>
