@@ -70,7 +70,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .append("path")
     .datum(data)
     .attr("fill", "none")
-    .attr("stroke", "white")
+    .attr("stroke", "steelblue")
     .attr("stroke-width", 3)
     .attr("d", line)
     .attr("clip-path", "url(#clip)");
@@ -165,7 +165,7 @@ export function createRealtimeChart(containerId, data) {
   
     const linePath = chartGroup.append("path")
     .attr("fill", "none")
-    .attr("stroke", "white")
+    .attr("stroke", "steelblue")
     .attr("stroke-width", 3);
   
     return {

@@ -1,28 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link rel="stylesheet" href="./dist/output.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bachelorarbeit</title>
 </head>
-<body class="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-gray-200"> 
+<body class="bg-gray-900 text-gray-200"> 
     <div id="container" class="w-full h-full flex flex-col">
         <!--Kopfzeile-->
-        <header class="bg-gradient-to-r from-#5754A3 via-#ecedee to-#000000 p-3 shadow-md">
+        <header class="bg-gray-800 p-4 shadow-md">
             <nav class="flex justify-between items-center">
-                <div id="time" class="text-lg font-semibold text-#fde294"></div>
+                <div id="time" class="text-lg font-semibold"></div>
                 <div class="flex items-center space-x-10">
-                    <div id="date" class="text-lg font-medium text-#cde8f9"></div>
+                    <div id="date" class="text-lg font-medium"></div>
                         <input 
                             id="cityInput"
                             type="text" 
                             value="Berlin"
                             placeholder="Stadt suchen..." 
-                            class="px-4 py-2 rounded-2xl text-gray-900 focus:outline-none focus:ring focus:ring-#fde294"
+                            class="px-4 py-2 rounded-2xl text-gray-900 focus:outline-none focus:ring focus:ring-blue-500"
                         />
-                        <button id="searchButton" class="bg-#5754A3 text-gray-200 border border-b-#fde294 px-4 py-2 rounded-md shadow-md backdrop-blur-md hover:bg-#cde8f9 transition">
+                        <button id="searchButton" class="bg-white/30 text-gray-200 px-4 py-2 rounded-md shadow-md backdrop-blur-md hover:bg-white/40 transition">
                             Suchen
                         </button>
                 </div>
@@ -30,72 +31,48 @@
         </header>
 
         <!--Hauptkontent-->
-        <main class="flex-grow w-full h-full px-4 py-2">
+        <main class="flex-grow w-full h-full px-4 py-1">
             <div id="topBar" class="grid grid-cols-3 gap-4 mb-6">
-                    <p id="location" class="text-lg font-semibold text-#fde294">Standort:</p>
+                    <p id="location" class="text-lg font-semibold">Standort:</p>
                     <div class="grid grid-cols-2 gap-4">
-                    <p id="sunrise" class="text-base text-#cde8f9">Sonnenaufgang:</p>
-                    <p id="sunset" class="text-base text-#cde8f9">Sonnenuntergang:</p>
+                    <p id="sunrise" class="text-base">Sonnenaufgang:</p>
+                    <p id="sunset" class="text-base">Sonnenuntergang:</p>
                     </div>
                 </div>
             <div id="weatherCanvas" class="p-2">
-                <div id="bodyContainer" class="flex flex-wrap justify-between relative">
-                    <!-- Linke Seite -->
-                    <div id="leftInformation" class="p-4 w-full md:w-1/3 flex flex-col items-start">
-                        <div class="flex items-start">
-                            <h1 id="currTemp" class="text-5xl mb-4 text-#fde294">kein Wert°C</h1>
-                            <div class="ml-4 flex flex-col">
-                                <div class="box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap justify-between mb-2">
-                                    <span class="text-sm font-medium text-#cde8f9">H:</span>
-                                    <span id="highTemp" class="text-sm text-gray-200"> kein Wert°</span>
-                                </div>
-                                <div class="box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap justify-between">
-                                    <span class="text-sm font-medium text-#cde8f9">T:</span>
-                                    <span id="lowTemp" class="text-sm text-gray-200"> kein Wert°</span>
-                                </div>
+                <div id="bodyContainer" class="flex flex-wrap justify-between">
+                    <div id="leftInformation" class="p-4">
+                        <h1 id="weatherDescription" class="text-5xl mb-4 my-20">Weather Description: kein Wert</h1>
+                    </div>
+                    <div id="rightInformation" class="border-1 box-border h-50 w-50 rounded-xl shadow-xl bg-gray-800 p-6">
+                        <h1 id="currTemp" class="text-5xl mb-4">kein Wert°C</h1>
+                        <div class="flex justify-between mb-4">
+                            <div class="bg-gray-700 box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
+                                <span class="text-sm font-medium">H:</span>
+                                <span id="highTemp" class="text-sm"> kein Wert°</span>
+                            </div>
+                            <div class="bg-gray-700 box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
+                                <span class="text-sm font-medium">T:</span>
+                                <span id="lowTemp" class="text-sm"> kein Wert°</span>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Wetterbeschreibung mittig -->
-                    <div id="weatherDescriptionContainer" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                        <h1 id="weatherDescription" class="text-5xl ">kein Wert</h1>
-                    </div>
-
-                    <!-- Rechte Seite -->
-                    <div id="rightInformation" class="bg-white-500 rounded-2xl shadow-lg p-6 flex flex-col justify-center items-start space-y-4">
-                        <div class="text-sm space-y-2 w-full text-gray-300">
-                            <div class="flex justify-between">
-                                <span class="font-medium text-#fde294">Fühlt sich an wie: </span>
-                                <span id="feelsLike" class="font-semibold text-white">kein Wert°</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="font-medium text-#cde8f9">Regenfall:</span>
-                                <span id="precip" class="font-semibold text-white">kein Wert %</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="font-medium text-#cde8f9">Luftfeuchtigkeit:</span>
-                                <span id="humidity" class="font-semibold text-white">kein Wert%</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="font-medium text-#cde8f9">Windgeschwindigkeit:</span>
-                                <span id="windSpeed" class="font-semibold text-white">kein Wert km/h</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="font-medium text-#cde8f9">UV-Index:</span>
-                                <span id="uvI" class="font-semibold text-white">kein Wert</span>
-                            </div>
+                        <h6 id="feelsLike" class="text-sm mb-4">Fühlt sich an wie: kein Wert°</h6>
+                        <div class="text-sm space-y-2">
+                            <h4 id="precip">Regenfall: kein Wert %</h4>
+                            <h4 id="humidity">Luftfeuchtigkeit: kein Wert%</h4>
+                            <h4 id="windSpeed">Windgeschwindigkeit: kein Wert km/h</h4>
+                            <h4 id="uvI">UV-Index: kein Wert</h4>
                         </div>
                     </div>
                 </div>
             </div>
             <div id="tabs" class="tabs flex left-0 right-0 backdrop-blur-md pb-3 px-6 space-x-3 mt-6">
-                <button id="realtimeTab" class="px-7 py-1 bg-#5754A3 text-#cde8f9 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-#fde294 transition">Echtzeit</button>
-                <button id="forecastTab" class="px-7 py-1 mx-5 bg-#5754A3 text-#cde8f9 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-#fde294 transition">Vorhersage</button>
+                <button id="realtimeTab" class="px-7 py-1 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-700 transition">Echtzeit</button>
+                <button id="forecastTab" class="px-7 py-1 mx-5 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-700 transition">Vorhersage</button>
             </div>                    
             <div id="tabContent" class=" mt-10 px-4 fixed bottom-0 w-full">
-                <div id="realtimeContainer" class="tab-content hidden bg-#5754A3 bg-opacity-75 p-2 rounded-lg"></div>
-                <div id="forecastContainer" class="tab-content active bg-#5754A3 bg-opacity-75 p-2 rounded-lg"></div>
+                <div id="realtimeContainer" class="tab-content hidden bg-gray-800 p-2 rounded-lg"></div>
+                <div id="forecastContainer" class="tab-content active bg-gray-800 p-2 rounded-lg"></div>
             </div>
         </main>
     </div>

@@ -19,28 +19,26 @@ function displayWeatherData({ sunRise, sunSet, cityName, weatherDetails }){
     const { weatherCode, temperatureNow, temperatureMax, temperatureMin, temperatureApparent, precipitationAvg, 
       windSpeed, windDirection, humidity, uvIndex} = weatherDetails;
 
-  // Aktualisiert die linken Wetterinformationen
-  const leftInformation = document.getElementById('leftInformation');
-  if (leftInformation) {
-    leftInformation.querySelector('#currTemp').textContent = `${temperatureNow}°C`;
-    leftInformation.querySelector('#highTemp').textContent = `${temperatureMax}°C`;
-    leftInformation.querySelector('#lowTemp').textContent = `${temperatureMin}°C`;
-    
+  
+
+    const leftInformation = document.getElementById('leftInformation')
+    if (leftInformation) {
+      leftInformation.querySelector('h1').textContent = weatherCode;
   }
-  const middleInformation = document.getElementById('weatherDescriptionContainer');
-  if (middleInformation){
-    middleInformation.querySelector('#weatherDescription').textContent = weatherCode;
-  }
-  // Aktualisiert die rechten Wetterinformationen
-  const rightInformation = document.getElementById('rightInformation');
-  if (rightInformation) {
-    rightInformation.querySelector('#feelsLike').textContent = `${temperatureApparent}°C`;
-      rightInformation.querySelector('#precip').textContent = `${precipitationAvg} %`;
-      rightInformation.querySelector('#windSpeed').textContent = `${windSpeed} km/h (${windDirection}°)`;
-      rightInformation.querySelector('#humidity').textContent = `${humidity}%`;
-      rightInformation.querySelector('#uvI').textContent = `${uvIndex}`;
+
+    const rightInformation = document.getElementById('rightInformation')
+    if (rightInformation) {
+      rightInformation.querySelector('#currTemp').textContent = `${temperatureNow}°C`;
+      rightInformation.querySelector('#highTemp').textContent = `${temperatureMax}°C`;
+      rightInformation.querySelector('#lowTemp').textContent = `${temperatureMin}°C`;
+      rightInformation.querySelector('#feelsLike').textContent = `Gefühlt: ${temperatureApparent}°C`;
+      rightInformation.querySelector('#precip').textContent = `Regenfall: ${precipitationAvg} %`;
+      rightInformation.querySelector('#windSpeed').textContent = `Wind: ${windSpeed} km/h (${windDirection}°)`;
+      rightInformation.querySelector('#humidity').textContent = `Luftfeuchtigkeit: ${humidity}%`;
+      rightInformation.querySelector('#uvI').textContent = `UV-Index: ${uvIndex}`;
   }
 }
+
 // Export der Funktion
 export { displayWeatherData };
 
