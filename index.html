@@ -9,7 +9,7 @@
     <title>Bachelorarbeit</title>
 </head>
 <body class="bg-gray-900 text-gray-200"> 
-    <div id="container" class="w-full h-full flex flex-col">
+    <div id="container" class="w-full h-full">
         <!--Kopfzeile-->
         <header class="bg-gray-800 p-4 shadow-md">
             <nav class="flex justify-between items-center">
@@ -23,7 +23,7 @@
                             placeholder="Stadt suchen..." 
                             class="px-4 py-2 rounded-2xl text-gray-900 focus:outline-none focus:ring focus:ring-blue-500"
                         />
-                        <button id="searchButton" class="bg-white/30 text-gray-200 px-4 py-2 rounded-md shadow-md backdrop-blur-md hover:bg-white/40 transition">
+                        <button id="searchButton" class="bg-white/30 text-white-800 px-4 py-2 rounded-md shadow-md backdrop-blur-md hover:bg-white/40 transition">
                             Suchen
                         </button>
                 </div>
@@ -39,7 +39,7 @@
                     <p id="sunset" class="text-base">Sonnenuntergang:</p>
                     </div>
                 </div>
-            <div id="weatherCanvas" class="p-2">
+            <div id="weatherCanvas" class="p-3">
                 <div id="bodyContainer" class="flex flex-wrap justify-between">
                     <div id="leftInformation" class="p-4">
                         <h1 id="weatherDescription" class="text-5xl mb-4 my-20">Weather Description: kein Wert</h1>
@@ -66,11 +66,11 @@
                     </div>
                 </div>
             </div>
-            <div id="tabs" class="tabs flex left-0 right-0 backdrop-blur-md pb-3 px-6 space-x-3 mt-6">
+            <div id="tabs" class="tabs flex left-0 right-0 backdrop-blur-md py-4 px-2 space-x-1">
                 <button id="realtimeTab" class="px-7 py-1 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-700 transition">Echtzeit</button>
                 <button id="forecastTab" class="px-7 py-1 mx-5 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-700 transition">Vorhersage</button>
             </div>                    
-            <div id="tabContent" class=" mt-10 px-4 fixed bottom-0 w-full">
+            <div id="tabContent" class="absolute bottom-16 left-0 right-0 px-4">
                 <div id="realtimeContainer" class="tab-content hidden bg-gray-800 p-2 rounded-lg"></div>
                 <div id="forecastContainer" class="tab-content active bg-gray-800 p-2 rounded-lg"></div>
             </div>
