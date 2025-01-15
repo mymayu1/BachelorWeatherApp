@@ -135,7 +135,7 @@ export function createLineChart(containerId, data, temperatureHiLo) {
         //     .attr("x", d => newXScale(new Date(d.time)));
     }
 }
-export function createRealtimeChart(containerId, data) {
+export function createRealtimeChart(containerId, realtimeData) {
     const margin = { top: 20, right: 50, bottom: 20, left: 50 };
     const width = 1800 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
@@ -167,20 +167,61 @@ export function createRealtimeChart(containerId, data) {
     .attr("fill", "none")
     .attr("stroke", "white")
     .attr("stroke-width", 3);
-  
-    return {
-      update: function (data) {
-        // Update Skalen
-        xScale.domain(d3.extent(data, d => new Date(d.time)));
-        yScale.domain([d3.min(data, d => d.temp) - 5, d3.max(data, d => d.temp) + 5]);
-  
+
+    // Buttons hinzufügen
+    const buttonGroup = svg.append("g").attr("class", "button-group");
+
+    const buttons = [
+        { label: "Temperatur", key: "temp" },
+        { label: "Niederschlag", key: "precipitation" },
+        { label: "UV-Index", key: "uvIndex" }
+    ];
+    buttonGroup.selectAll("g.button")
+    .data(buttons)
+    .enter()
+    .append("g")
+    .attr("class", "button")
+    .attr("transform", (_, i) => `translate(${margin.left + i * 100}, ${margin.top - 30})`)
+    .on("click", (_, d) => updateGraph(d.key))
+    .each(function(d) {
+      const button = d3.select(this);
+      button.append("rect")
+        .attr("width", 90)
+        .attr("height", 30)
+        .attr("fill", "lightgray")
+        .attr("rx", 5)
+        .attr("ry", 5);
+
+      button.append("text")
+        .attr("x", 45)
+        .attr("y", 20)
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .text(d.label);
+    });
+    
+    function updateGraph(key) {
+        const filteredData = realtimeData.map(d => ({
+          time: d.time,
+          value: d[key] || 0
+        }));
+    
+        // Skalen aktualisieren
+        xScale.domain(d3.extent(filteredData, d => new Date(d.time)));
+        yScale.domain([d3.min(filteredData, d => d.value) - 5, d3.max(filteredData, d => d.value) + 5]);
+    
         // Achsen aktualisieren
         xAxisGroup.call(d3.axisBottom(xScale).ticks(5).tickFormat(d3.timeFormat("%H:%M")));
         yAxisGroup.call(d3.axisLeft(yScale));
-  
+    
         // Linie aktualisieren
-        linePath.datum(data).attr("d", line);
-      },
-    };
+        linePath.datum(filteredData).attr("d", line);
+    }
+
+    return {
+      update: function (realtimeData) {
+      updateGraph("temp"); // Standard: Temperatur anzeigen
+    },
+  };
   }
   
