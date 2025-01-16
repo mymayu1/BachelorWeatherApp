@@ -158,7 +158,7 @@ async function fetchRealtimeData(city) {
     const currentTime = new Date(realtimeData.data.time).toISOString();
   
 
-    saveToCache(realtimeKey,  { time: currentTime, temp: currentTemp }, 2);
+    saveToCache(realtimeKey,  { time: currentTime, temp: currentTemp });
 
     //console.log("Empfangene Echtzeitdaten:", JSON.stringify(realtimeData, null, 2)); // Detailliertes Logging
 
@@ -244,10 +244,6 @@ function processWeatherData(weatherData, city) {
     console.log("Verwende gespeicherte Forecast-Daten.");
   }
 
-  if (!realtime || !realtime.data || !realtime.data.values) {
-    console.error("Fehler: Ungültige Realtime-Daten:", realtime);
-    return;
-  }
   const currentTemp = Math.floor(realtime.data.values.temperature) || "N/A";
   console.log("Aktuelle Temperatur:", currentTemp);
 
@@ -265,20 +261,6 @@ function processWeatherData(weatherData, city) {
   }
   console.log("Tagesvorhersage:", todayForecast);
 
-  //Extrahiere die Höchst- und Tiefsttemperaturen sowie das Datum
-  const temperatureHiLo = dailyForecast.map((entry) => {
-    if (!entry.time || !entry.values.temperatureMax || !entry.values.temperatureMin) {
-      console.error("Fehler: Ungültige Daten für", entry);
-      return null;
-    }
-    return {
-      date: entry.time, // Zeitstempel
-      tempMax: entry.values.temperatureMax, // Höchsttemperatur
-      tempMin: entry.values.temperatureMin, // Tiefsttemperatur
-    };
-  }).filter(item => item !== null); // Filtere ungültige Einträge heraus
-
-
  
   const hourlyForecastData = forecast.timelines.hourly.map((entry) => ({
     time: entry.time || "Zeit nicht verfügbar",
@@ -290,7 +272,7 @@ function processWeatherData(weatherData, city) {
   console.log("Daten für Chart:", hourlyForecastData);
 
   // Erstellt den Line Chart
-  processForecastData(hourlyForecastData, temperatureHiLo);
+  processForecastData(hourlyForecastData);
 
   const allWeatherCodes = realtime.data.values.weatherCode;
 
@@ -485,27 +467,7 @@ async function fetchRealtimeData(city) {
 }
 
 async function fetchWeatherData(city) {
-  // const forecastKey = `weatherData_forecast_${city}`;
-  // const realtimeKey = `weatherData_realtime_${city}`;
 
-  // // Prüfe Vorhersage-Daten im Cache
-  // const cachedForecast = getFromCache(forecastKey);
-  // const cachedRealtime = getFromCache(realtimeKey);
-
-  // // Flags, um festzustellen, ob API-Aufrufe erforderlich sind
-  // const needsForecast = !cachedForecast;
-  // const needsRealtime = !cachedRealtime;
-
-  // // API-Aufrufe nur bei Bedarf
-  // const requests = [];
-  // if (needsForecast) {
-  //   const forecastUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${city}&apikey=${apiKey}`;
-  //   requests.push(fetchWithLimiter(forecastUrl, options));
-  // }
-  // if (needsRealtime) {
-  //   const realtimeUrl = `https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`;
-  //   requests.push(fetchWithLimiter(realtimeUrl, options));
-  // }
   try {
     const forecastData = await fetchForecastData(city);
     const realtimeData = await fetchRealtimeData(city);
@@ -540,16 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Echtzeitdaten starten
   startRealtimeUpdates(city, 60000, updateRealtimeChart); // Updates alle 60 Sekunden
 
-  // const forecastKey = `weatherData_${city}`;
-  // const cachedData = getFromCache(forecastKey);
 
-  // if (!cachedData) {
-  //   console.log("Keine gespeicherten Forecast-Daten gefunden, neue Daten abrufen.");
-  //   fetchWeatherData(city);
-  // } else {
-  //   console.log("Gespeicherte Forecast-Daten verwenden.");
-  //   processWeatherData(cachedData, city);
-  // }
 });
 
 document.getElementById('searchButton').addEventListener('click', () => {

@@ -1,4 +1,5 @@
-export function createLineChart(containerId, data, temperatureHiLo) {
+export function createLineChart(containerId, data) {
+    const dailyData = aggregateDailyData(data);
     if (!data || data.length === 0) {
         console.error("Keine gültigen Daten für das Diagramm übergeben.");
         return;
@@ -75,11 +76,104 @@ export function createLineChart(containerId, data, temperatureHiLo) {
     .attr("d", line)
     .attr("clip-path", "url(#clip)");
 
-    function filterEveryThreeHours(data) {
+    displayDailyLabels(chartGroup, dailyData, xScale, yScale)
+
+
+    function filter12Hours(data) {
         return data.filter(d => {
             const hour = new Date(d.time).getHours();
-            return hour % 3 === 0; // Nur Daten, bei denen die Stunde ein Vielfaches von 3 ist
+            return hour % 12 === 0; // Nur Werte alle 12 Stunden
         });
+    }
+    
+    function filter6Hours(data) {
+        return data.filter(d => {
+            const hour = new Date(d.time).getHours();
+            return hour % 6 === 0; // Nur Werte alle 6 Stunden
+        });
+    }
+    
+    function filter3Hours(data) {
+        return data.filter(d => {
+            const hour = new Date(d.time).getHours();
+            return hour % 3 === 0; // Nur Werte alle 3 Stunden
+        });
+    }
+    
+    function filterHourly(data) {
+        return data; // Alle Werte (stündlich)
+    }
+    
+
+    function aggregateDailyData(data) {
+
+        const groupedData = d3.groups(data, d => {
+            const date = new Date(d.time);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Monat mit führender Null
+            const day = String(date.getDate()).padStart(2, '0'); // Tag mit führender Null
+            return `${year}-${month}-${day}`;
+        });
+
+        return groupedData.map(([date, values]) => {
+            const parsedDate = new Date(date); // Korrekt formatierter String wird verarbeitet
+            if (isNaN(parsedDate.getTime())) {
+                console.error("Invalid date during aggregation:", date);
+                return null; // Ungültige Gruppen überspringen
+            }
+            return {
+                date: parsedDate,
+                tempMax: d3.max(values, d => d.temp),
+                tempMin: d3.min(values, d => d.temp)
+            };
+        }).filter(d => d !== null); // Entferne ungültige Einträge
+
+        
+    }
+    function displayTemperatureLabels(data, xScale, yScale, intervalType) {
+        chartGroup
+            .selectAll(".temp-label")
+            .data(data)
+            .enter()
+            .append("text")
+            .attr("class", "temp-label")
+            .attr("x", d => xScale(new Date(d.time)))
+            .attr("y", d => yScale(d.temp) - 50) // Leicht oberhalb der Linie
+            .style("text-anchor", "middle")
+            .style("font-size", intervalType === "hourly" ? "10px" : "12px")
+            .style("fill", "white")
+            .text(d => `${Math.round(d.temp)}°C`);
+    }
+    
+
+    function displayDailyLabels(chartGroup, dailyData, xScale, yScale) {
+        chartGroup.selectAll(".daily-label").remove();
+    
+        chartGroup
+            .selectAll(".daily-label-high")
+            .data(dailyData)
+            .enter()
+            .append("text")
+            .attr("class", "daily-label-high")
+            .attr("x", d => xScale(new Date(d.date)))
+            .attr("y", d => yScale(d.tempMax) - 20)
+            .style("text-anchor", "middle")
+            .style("fill", "red")
+            .style("font-size", "12px")
+            .text(d => `${Math.round(d.tempMax)}°C`);
+    
+        chartGroup
+            .selectAll(".daily-label-low")
+            .data(dailyData)
+            .enter()
+            .append("text")
+            .attr("class", "daily-label-low")
+            .attr("x", d => xScale(new Date(d.date)))
+            .attr("y", d => yScale(d.tempMin) + 30)
+            .style("text-anchor", "middle")
+            .style("fill", "lightblue")
+            .style("font-size", "12px")
+            .text(d => `${Math.round(d.tempMin)}°C`);
     }
 
     // Zoomfunktion hinzufügen
@@ -98,41 +192,33 @@ export function createLineChart(containerId, data, temperatureHiLo) {
 
        // xAxis.ticks(d3.timeHour.every(3)).tickFormat(d3.timeFormat("%H:%M"));
         xAxisGroup.call(xAxis.scale(newXScale));
-        
-        const filteredData = filterEveryThreeHours(data);  
 
+        chartGroup.selectAll(".temp-label").remove();
+        chartGroup.selectAll(".daily-label-high").remove();
+        chartGroup.selectAll(".daily-label-low").remove();
         
-        // Ändere die Ticks je nach Zoom-Level
-        if (transform.k > 3) { // Wenn gezoomt wird (k > 3), zeige Uhrzeiten
-            xAxis.ticks(d3.timeHour).ticks(12).tickFormat(d3.timeFormat("%H:%M"));
-            filteredData;
-           
-        } else { // Wenn weit herausgezoomt wird, zeige Wochentage
+        if (transform.k > 4) { // Stufe 4: Stündliche Intervalle
+            const hourlyData = filterHourly(data);
+            displayTemperatureLabels(hourlyData, newXScale, yScale, "hourly");
+            xAxis.ticks(d3.timeHour.every(1)).tickFormat(d3.timeFormat("%H:%M"));
+        } else if (transform.k > 3) { // Stufe 3: 3-Stunden-Intervalle
+            const threeHourData = filter3Hours(data);
+            displayTemperatureLabels(threeHourData, newXScale, yScale, "3h");
+            xAxis.ticks(d3.timeHour.every(3)).tickFormat(d3.timeFormat("%H:%M"));
+        } else if (transform.k > 2) { // Stufe 2: 6-Stunden-Intervalle
+            const sixHourData = filter6Hours(data);
+            displayTemperatureLabels(sixHourData, newXScale, yScale, "6h");
+            xAxis.ticks(d3.timeHour.every(6)).tickFormat(d3.timeFormat("%H:%M"));
+        } else if (transform.k > 1) { // Stufe 1: 12-Stunden-Intervalle
+            const twelveHourData = filter12Hours(data);
+            displayTemperatureLabels(twelveHourData, newXScale, yScale, "12h");
+            xAxis.ticks(d3.timeHour.every(12)).tickFormat(d3.timeFormat("%H:%M"));
+        } else { // Standardansicht: tägliche Höchst- und Tiefstwerte
+            const dailyData = aggregateDailyData(data);
+            displayDailyLabels(chartGroup, dailyData, newXScale, yScale);
             xAxis.ticks(d3.timeDay).tickFormat(d3.timeFormat("%A"));
-
         }
-        chartGroup.selectAll(".temp-label").remove();   
-
-        // Füge neue Temperaturtexte hinzu
-        chartGroup
-        .selectAll(".temp-label")
-        .data(filteredData)
-        .enter()
-        .append("text")
-        .attr("class", "temp-label")
-        .attr("x", d => newXScale(new Date(d.time)))
-        .attr("y", d => yScale(d.temp) - 50)
-        .attr("text-anchor", "middle")
-        .style("font-size", "12px")
-        .style("fill", "white")
-        .text(d => `${d.temp}°C`)
-        .attr("clip-path", "url(#clip)");
-
-    
         linePath.attr("d", line.x((d) => newXScale(new Date(d.time))))
-        // Textposition aktualisieren
-        //  chartGroup.selectAll(".temp-label")
-        //     .attr("x", d => newXScale(new Date(d.time)));
     }
 }
 export function createRealtimeChart(containerId, realtimeData) {
