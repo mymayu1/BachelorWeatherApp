@@ -134,6 +134,7 @@ function getFromCache(key) {
 
 // Funktion, um Echtzeitdaten periodisch abzurufen
 async function fetchRealtimeData(city) {
+  console.log("fetchRealtimeData aufgerufen für Stadt:", city);
   const realtimeKey = `weatherData_realtime_${city}`;
   const cachedRealtimeData = getFromCache(realtimeKey);
 
@@ -152,15 +153,12 @@ async function fetchRealtimeData(city) {
     }
     
     const realtimeData = await realtimeResponse.json();
-    console.log("Empfangene Echtzeitdaten:", JSON.stringify(realtimeData, null, 2));
+    console.log("Empfangene Echtzeitdaten:", realtimeData);
 
     const currentTemp = Math.floor(realtimeData.data.values.temperature) || "N/A";
     const currentTime = new Date(realtimeData.data.time).toISOString();
-  
 
     saveToCache(realtimeKey,  { time: currentTime, temp: currentTemp });
-
-    //console.log("Empfangene Echtzeitdaten:", JSON.stringify(realtimeData, null, 2)); // Detailliertes Logging
 
     console.log("Neue Echtzeitdaten abgerufen und gespeichert:", {
       time: currentTime,
@@ -175,60 +173,53 @@ async function fetchRealtimeData(city) {
       console.warn("Verwende ältere Echtzeitdaten aus Cache nach API-Fehler:", cachedRealtimeData);
       return cachedRealtimeData;
     }
-
     return null;
+    
   }
+  
 }
 
 // Echtzeitdaten regelmäßig aktualisieren
 function startRealtimeUpdates(city, updateInterval = 60000, updateChartCallback) {
   let realtimeData = [];
-  const maxDataPoints = 100; // Begrenzung der Punkte für bessere Performance
+  const maxDataPoints = 100;
+  setupWebSocket(city, (newData) => {
+    console.log("WebSocket-Daten für den Chart:", newData);
+    realtimeData.push(...newData);
+    console.log("Aktualisiertes Echtzeitdaten-Array:", realtimeData);
+    if (realtimeData.length > maxDataPoints) {
+      realtimeData = realtimeData.slice(-maxDataPoints);
+    }
+    console.log("Echtzeitdaten nach WebSocket-Update:", realtimeData); 
+    if (typeof updateChartCallback === "function") {
+      updateChartCallback(realtimeData);
+    }
+   
+    
+  });
 
-  async function updateChart() {
-    const newRealtimeData = await fetchRealtimeData(city);
-
-    if (newRealtimeData) {
-      // Prüfe, ob die Daten korrekt sind
-      const time = new Date(newRealtimeData.data.time);
-      const temp = newRealtimeData.data.values.temperature;
-
-      if (isNaN(time.getTime())) {
-        console.error("Ungültige Zeit im Echtzeitdatenpunkt:", newRealtimeData.time);
-        return;
-      }
-  
-      if (temp === undefined || temp === null) {
-        console.error("Temperaturdaten fehlen oder sind ungültig:", newRealtimeData.temp);
-        return;
-      }
-
-      const newPoint = {
-        time: time.toLocaleTimeString(),
-        temp: Math.floor(temp),
-      };
-      console.log("Neuer Datenpunkt für Echtzeit-Chart:", newPoint);
-      realtimeData.push(newPoint);
-
-      if (realtimeData.length > maxDataPoints) {
-        realtimeData.shift();
-      }
-
-      if (typeof updateChartCallback === "function") {
-        updateChartCallback(realtimeData);
+  // Optionaler Fallback: Periodische API-Abfragen
+  setInterval(async () => {
+     console.log("API-Fallback für Echtzeitdaten");
+    if (realtimeData.length === 0) {
+      const newRealtimeData = await fetchRealtimeData(city);
+      if (newRealtimeData) {
+        realtimeData.push(newRealtimeData);
+        if (realtimeData.length > maxDataPoints) {
+          realtimeData.shift();
+        }
+        if (typeof updateChartCallback === "function") {
+          updateChartCallback(realtimeData);
+        }
       }
     }
-    console.log("Übergebene Daten an den Echtzeit-Chart:", realtimeData);
-
-  }
-  
-
-  if (realtimeData.length === 0) {
-    updateChart();
-  } 
-  setInterval(updateChart, updateInterval);
-  
+  }, updateInterval);
+  console.log("Eingehende Daten:", realtimeData);
+  realtimeData.forEach(d => {
+  console.log("Datenpunkt:", { time: d.time, temp: d.temp });
+});
 }
+
 
 
 function processWeatherData(weatherData, city) {
@@ -362,8 +353,6 @@ function processWeatherData(weatherData, city) {
 
 }
 
-//console.log("temperatureHiLo:", temperatureHiLo);
-
 async function loadWeatherData() {
   try {
     const response = await fetch('./weatherCodes.json');
@@ -486,24 +475,66 @@ async function fetchWeatherData(city) {
     console.error("Fehler beim Abrufen der Wetterdaten:", error);
   }
 }
+// Funktion zur Verbindung mit dem WebSocket-Server
+function setupWebSocket(city, updateChartCallback) {
+  const WEBSOCKET_URL = "ws://127.0.0.1:8080"; // Adresse des WebSocket-Servers
+  const socket = new WebSocket(WEBSOCKET_URL);
+
+  socket.onopen = () => {
+    console.log("WebSocket-Verbindung hergestellt");
+    // Optional: Stadt an den Server senden, wenn der Server dies unterstützt
+    socket.send(JSON.stringify({ type: "subscribe", city: city }));
+  };
+
+  socket.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      console.log("Echtzeitdaten empfangen:", data);
+
+      // Aktualisiere den Chart mit den empfangenen Daten
+      if (typeof updateChartCallback === "function") {
+        updateChartCallback([{
+          time: new Date(data.time).toLocaleTimeString(),
+          temp: Math.floor(data.temp),
+        }]);
+        console.log("WebSocket-Daten:", data);
+      }
+    } catch (error) {
+      console.error("Fehler beim Verarbeiten der WebSocket-Daten:", error);
+    }
+  };
+
+  socket.onclose = () => {
+    console.warn("WebSocket-Verbindung geschlossen. Versuche erneut zu verbinden...");
+    setTimeout(() => setupWebSocket(city, updateChartCallback), 5000); // Reconnect nach 5 Sekunden
+  };
+
+  socket.onerror = (error) => {
+    console.error("WebSocket-Fehler:", error);
+  };
+}
 
 
 document.addEventListener('DOMContentLoaded', () => {
   const city = "Berlin"; // Standardstadt
   fetchWeatherData(city);
-
-  // Echtzeitdaten-Chart initialisieren
   const realtimeChart = createRealtimeChart("#realtimeContainer", []);
-
+  console.log("Chart initialisiert:", realtimeChart);
   // Funktion zum Aktualisieren des Echtzeit-Charts
   function updateRealtimeChart(data) {
-    realtimeChart.update(data);
+    console.log("Daten, die an den Chart übergeben werden:", data); // Debug
+    if (!data || data.length === 0) {
+      console.warn("Keine Daten zum Anzeigen im Chart!"); // Debug
+      return;
+    }
+    realtimeChart.update(data); // Aktualisiert den Chart mit den neuen Daten
   }
+
   // Echtzeitdaten starten
-  startRealtimeUpdates(city, 60000, updateRealtimeChart); // Updates alle 60 Sekunden
-
-
+  startRealtimeUpdates(city, 60000, updateRealtimeChart); // Hier wird die Funktion verwendet
 });
+  
+
 
 document.getElementById('searchButton').addEventListener('click', () => {
 

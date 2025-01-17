@@ -236,6 +236,9 @@ export function createRealtimeChart(containerId, realtimeData) {
   
     const xScale = d3.scaleTime().range([0, width]);
     const yScale = d3.scaleLinear().range([height, 0]);
+    console.log("X-Achse Domain:", xScale.domain());
+    console.log("Y-Achse Domain:", yScale.domain());
+
   
     const xAxisGroup = chartGroup
       .append("g")
@@ -287,11 +290,12 @@ export function createRealtimeChart(containerId, realtimeData) {
     });
     
     function updateGraph(key) {
+        console.log("Aktuelle Echtzeitdaten updategraph:", realtimeData);
         const filteredData = realtimeData.map(d => ({
           time: d.time,
           value: d[key] || 0
         }));
-    
+        console.log("Gefilterte Daten für die Achsen: updategraph", filteredData); 
         // Skalen aktualisieren
         xScale.domain(d3.extent(filteredData, d => new Date(d.time)));
         yScale.domain([d3.min(filteredData, d => d.value) - 5, d3.max(filteredData, d => d.value) + 5]);
@@ -304,9 +308,11 @@ export function createRealtimeChart(containerId, realtimeData) {
         linePath.datum(filteredData).attr("d", line);
     }
 
+
     return {
-      update: function (realtimeData) {
-      updateGraph("temp"); // Standard: Temperatur anzeigen
+        update: function (realtimeData) {
+        console.log("Update-Daten:", realtimeData); // DEBUG
+        updateGraph("temp"); // Standard: Temperatur anzeigen
     },
   };
   }
