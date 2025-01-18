@@ -11,37 +11,37 @@ export function createLineChart(containerId, data) {
 
     // SVG-Container erstellen
     const svg = d3
-    .select(containerId)
-    .append("svg")
-    .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-    .attr("preserveAspectRatio", "xMidYMid meet");
+        .select(containerId)
+        .append("svg")
+        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr("preserveAspectRatio", "xMidYMid meet");
 
     const chartGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     // Skalen erstellen
     const xScale = d3.scaleTime()
-    .domain(d3.extent(data, d => new Date(d.time))) // Zeitbereich (Datenbereich)
-    .range([0, width]); // Pixelbereich
+        .domain(d3.extent(data, d => new Date(d.time))) // Zeitbereich (Datenbereich)
+        .range([0, width]); // Pixelbereich
 
     const yScale = d3.scaleLinear()
-    .domain([d3.min(data, d => d.temp) - 5, d3.max(data, d => d.temp) + 5]) // Temperaturbereich
-    .range([height, 0]); // Pixelbereich (invertiert)
+        .domain([d3.min(data, d => d.temp) - 5, d3.max(data, d => d.temp) + 5]) // Temperaturbereich
+        .range([height, 0]); // Pixelbereich (invertiert)
 
     console.log("xScale Domain:", xScale.domain());
-    console.log("yScale Domain:", yScale.domain()); 
-  
+    console.log("yScale Domain:", yScale.domain());
+
 
     //Clippath
     chartGroup
-    .append("defs")
-    .append("clipPath")
-    .attr("id", "clip")
-    .append("rect")
-    .attr("x", 0)
-    .attr("y", 0)
-    .attr("width", width)
-    .attr("height", height)
-    .attr("clip-path", "url(#clip)");
+        .append("defs")
+        .append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", width)
+        .attr("height", height)
+        .attr("clip-path", "url(#clip)");
 
 
     // X- und Y-Achsen erstellen
@@ -50,31 +50,31 @@ export function createLineChart(containerId, data) {
 
     // X-Achse hinzufügen
     const xAxisGroup = chartGroup
-    .append("g")
-    .attr("class", "x-axis")
-    .attr("transform", `translate(0, ${height})`)
-    .call(xAxis);
+        .append("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0, ${height})`)
+        .call(xAxis);
 
     // Y-Achse hinzufügen
     const yAxisGroup = chartGroup
-    .append("g")
-    .attr("class", "y-axis")
-    .call(yAxis);
+        .append("g")
+        .attr("class", "y-axis")
+        .call(yAxis);
 
 
     // Linie erstellen
     const line = d3.line()
-    .x(d => xScale(new Date(d.time))) // X-Wert berechnen
-    .y(d => yScale(d.temp)); // Y-Wert berechnen
+        .x(d => xScale(new Date(d.time))) // X-Wert berechnen
+        .y(d => yScale(d.temp)); // Y-Wert berechnen
 
     const linePath = chartGroup
-    .append("path")
-    .datum(data)
-    .attr("fill", "none")
-    .attr("stroke", "white")
-    .attr("stroke-width", 3)
-    .attr("d", line)
-    .attr("clip-path", "url(#clip)");
+        .append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "white")
+        .attr("stroke-width", 3)
+        .attr("d", line)
+        .attr("clip-path", "url(#clip)");
 
     displayDailyLabels(chartGroup, dailyData, xScale, yScale)
 
@@ -85,25 +85,25 @@ export function createLineChart(containerId, data) {
             return hour % 12 === 0; // Nur Werte alle 12 Stunden
         });
     }
-    
+
     function filter6Hours(data) {
         return data.filter(d => {
             const hour = new Date(d.time).getHours();
             return hour % 6 === 0; // Nur Werte alle 6 Stunden
         });
     }
-    
+
     function filter3Hours(data) {
         return data.filter(d => {
             const hour = new Date(d.time).getHours();
             return hour % 3 === 0; // Nur Werte alle 3 Stunden
         });
     }
-    
+
     function filterHourly(data) {
         return data; // Alle Werte (stündlich)
     }
-    
+
 
     function aggregateDailyData(data) {
 
@@ -128,7 +128,7 @@ export function createLineChart(containerId, data) {
             };
         }).filter(d => d !== null); // Entferne ungültige Einträge
 
-        
+
     }
     function displayTemperatureLabels(data, xScale, yScale, intervalType) {
         chartGroup
@@ -144,11 +144,11 @@ export function createLineChart(containerId, data) {
             .style("fill", "white")
             .text(d => `${Math.round(d.temp)}°C`);
     }
-    
+
 
     function displayDailyLabels(chartGroup, dailyData, xScale, yScale) {
         chartGroup.selectAll(".daily-label").remove();
-    
+
         chartGroup
             .selectAll(".daily-label-high")
             .data(dailyData)
@@ -161,7 +161,7 @@ export function createLineChart(containerId, data) {
             .style("fill", "red")
             .style("font-size", "12px")
             .text(d => `${Math.round(d.tempMax)}°C`);
-    
+
         chartGroup
             .selectAll(".daily-label-low")
             .data(dailyData)
@@ -178,11 +178,11 @@ export function createLineChart(containerId, data) {
 
     // Zoomfunktion hinzufügen
     const zoom = d3
-    .zoom()
-    .scaleExtent([1, 8]) // Zoomfaktor (1 bis 8)
-    .translateExtent([[0, 0], [width, height]]) // Begrenzung des Bereichs
-    .extent([[0, 0], [width, height]]) // Zoombereich
-    .on("zoom", zoomed);
+        .zoom()
+        .scaleExtent([1, 8]) // Zoomfaktor (1 bis 8)
+        .translateExtent([[0, 0], [width, height]]) // Begrenzung des Bereichs
+        .extent([[0, 0], [width, height]]) // Zoombereich
+        .on("zoom", zoomed);
 
     svg.call(zoom);
 
@@ -190,13 +190,13 @@ export function createLineChart(containerId, data) {
         const transform = event.transform;
         const newXScale = transform.rescaleX(xScale);
 
-       // xAxis.ticks(d3.timeHour.every(3)).tickFormat(d3.timeFormat("%H:%M"));
+        // xAxis.ticks(d3.timeHour.every(3)).tickFormat(d3.timeFormat("%H:%M"));
         xAxisGroup.call(xAxis.scale(newXScale));
 
         chartGroup.selectAll(".temp-label").remove();
         chartGroup.selectAll(".daily-label-high").remove();
         chartGroup.selectAll(".daily-label-low").remove();
-        
+
         if (transform.k > 4) { // Stufe 4: Stündliche Intervalle
             const hourlyData = filterHourly(data);
             displayTemperatureLabels(hourlyData, newXScale, yScale, "hourly");
@@ -225,37 +225,60 @@ export function createRealtimeChart(containerId, realtimeData) {
     const margin = { top: 20, right: 50, bottom: 20, left: 50 };
     const width = 1800 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
-  
+
     const svg = d3
-      .select(containerId)
-      .append("svg")
-      .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-      .attr("preserveAspectRatio", "xMidYMid meet");
-  
+        .select(containerId)
+        .append("svg")
+        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr("preserveAspectRatio", "xMidYMid meet");
+
     const chartGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
-  
+
     const xScale = d3.scaleTime().range([0, width]);
     const yScale = d3.scaleLinear().range([height, 0]);
     console.log("X-Achse Domain:", xScale.domain());
     console.log("Y-Achse Domain:", yScale.domain());
 
-  
+
     const xAxisGroup = chartGroup
-      .append("g")
-      .attr("class", "x-axis")
-      .attr("transform", `translate(0, ${height})`);
-  
+        .append("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0, ${height})`);
+
     const yAxisGroup = chartGroup.append("g").attr("class", "y-axis");
-  
+
     const line = d3
-      .line()
-      .x(d => xScale(new Date(d.time)))
-      .y(d => yScale(d.temp));
-  
+        .line()
+        .x(d => xScale(new Date(d.time)))
+        .y(d => yScale(d.temp));
+
     const linePath = chartGroup.append("path")
-    .attr("fill", "none")
-    .attr("stroke", "white")
-    .attr("stroke-width", 3);
+        .attr("fill", "none")
+        .attr("stroke", "white")
+        .attr("stroke-width", 3);
+
+    let lastUpdate = 0;
+
+    const debounceUpdate = (data) => {
+        const now = Date.now();
+        if (now - lastUpdate < 1000) return; // Aktualisiere maximal einmal pro Sekunde
+        lastUpdate = now;
+
+        // Datenbereich aktualisieren
+        xScale.domain(d3.extent(data, (d) => new Date(d.time)));
+        yScale.domain([d3.min(data, (d) => d.temp) - 5, d3.max(data, (d) => d.temp) + 5]);
+
+        // Achsen aktualisieren
+        xAxisGroup.call(d3.axisBottom(xScale).ticks(5).tickFormat(d3.timeFormat("%H:%M")));
+        yAxisGroup.call(d3.axisLeft(yScale));
+
+        // Linie aktualisieren
+        linePath.datum(data).attr("d", line);
+    };
+
+    return {
+        update: debounceUpdate,
+    };
 
     // Buttons hinzufügen
     const buttonGroup = svg.append("g").attr("class", "button-group");
@@ -266,54 +289,64 @@ export function createRealtimeChart(containerId, realtimeData) {
         { label: "UV-Index", key: "uvIndex" }
     ];
     buttonGroup.selectAll("g.button")
-    .data(buttons)
-    .enter()
-    .append("g")
-    .attr("class", "button")
-    .attr("transform", (_, i) => `translate(${margin.left + i * 100}, ${margin.top - 30})`)
-    .on("click", (_, d) => updateGraph(d.key))
-    .each(function(d) {
-      const button = d3.select(this);
-      button.append("rect")
+        .data(buttons)
+        .enter()
+        .append("g")
+        .attr("class", "button")
+        .attr("transform", (_, i) => `translate(${margin.left + i * 100}, ${margin.top - 30})`)
+        .on("click", (_, d) => updateGraph(d.key))
+        .each(function (d) {
+    const button = d3.select(this);
+    button.append("rect")
         .attr("width", 90)
         .attr("height", 30)
         .attr("fill", "lightgray")
         .attr("rx", 5)
         .attr("ry", 5);
 
-      button.append("text")
+    button.append("text")
         .attr("x", 45)
         .attr("y", 20)
         .attr("text-anchor", "middle")
         .style("font-size", "14px")
         .text(d.label);
-    });
-    
-    function updateGraph(key) {
-        console.log("Aktuelle Echtzeitdaten updategraph:", realtimeData);
-        const filteredData = realtimeData.map(d => ({
-          time: d.time,
-          value: d[key] || 0
-        }));
-        console.log("Gefilterte Daten für die Achsen: updategraph", filteredData); 
+        });
+
+    function updateGraph(data) {
+        console.log("Aktuelle Echtzeitdaten:", realtimeData);
+
+        // Daten filtern und validieren
+        const filteredData = realtimeData
+            .filter(d => d.time && d[key] !== undefined) // Gültige Zeit und Wert
+            .map(d => ({
+                time: new Date(d.time), // Zeit als Date-Objekt
+                value: d[key] || 0      // Standardwert bei fehlendem Wert
+            }));
+
+        console.log("Gefilterte Daten für die Achsen:", filteredData);
+
         // Skalen aktualisieren
-        xScale.domain(d3.extent(filteredData, d => new Date(d.time)));
-        yScale.domain([d3.min(filteredData, d => d.value) - 5, d3.max(filteredData, d => d.value) + 5]);
-    
+        xScale.domain(d3.extent(filteredData, d => d.time));
+        yScale.domain([
+            d3.min(filteredData, d => d.value) - 5,
+            d3.max(filteredData, d => d.value) + 5
+        ]);
+
+        console.log("xScale Domain:", xScale.domain());
+        console.log("yScale Domain:", yScale.domain());
+
         // Achsen aktualisieren
         xAxisGroup.call(d3.axisBottom(xScale).ticks(5).tickFormat(d3.timeFormat("%H:%M")));
         yAxisGroup.call(d3.axisLeft(yScale));
-    
+
         // Linie aktualisieren
         linePath.datum(filteredData).attr("d", line);
     }
 
 
     return {
-        update: function (realtimeData) {
-        console.log("Update-Daten:", realtimeData); // DEBUG
-        updateGraph("temp"); // Standard: Temperatur anzeigen
-    },
-  };
-  }
-  
+        update: updateGraph,
+
+
+    };
+}
