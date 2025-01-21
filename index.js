@@ -164,12 +164,7 @@ async function fetchRealtimeData(city) {
       time: currentTime,
       temp: currentTemp,
     });
-    
-    console.log("API-Daten abgerufen:(fetchrealtimedata)", {
-      time: new Date(realtimeData.data.time).toISOString(),
-      temp: Math.floor(realtimeData.data.values.temperature) || "N/A",
-      city: city,
-    });
+
     return { time: currentTime, temp: currentTemp };
   } catch (error) {
     console.error("Fehler beim Abrufen der Echtzeitdaten:", error);
@@ -479,20 +474,13 @@ async function fetchWeatherData(city) {
     console.error("Fehler beim Abrufen der Wetterdaten:", error);
   }
 }
-
-let currentSocket = null;
 // Funktion zur Verbindung mit dem WebSocket-Server
 function setupWebSocket(city, updateChartCallback) {
   const WEBSOCKET_URL = "ws://127.0.0.1:8080"; // Adresse des WebSocket-Servers
   let reconnectDelay = 1000; // Start mit 1 Sekunde
 
   const connect = () => {
-    if (currentSocket) {
-      console.log("Bestehende WebSocket-Verbindung wird geschlossen.");
-      currentSocket.close();
-    }
     const socket = new WebSocket(WEBSOCKET_URL);
-    currentSocket = socket;
     const receivedTimestamps = new Set(); // Zur Vermeidung von Duplikaten
 
     socket.onopen = () => {
@@ -504,8 +492,7 @@ function setupWebSocket(city, updateChartCallback) {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("Empfangene WebSocket-Daten:", data);
-        console.log("Aktive Stadt:", city);
+
         // Überprüfen, ob der Zeitstempel bereits verarbeitet wurde
         if (receivedTimestamps.has(data.time)) {
           console.warn("Duplikat-Daten ignoriert:", data);
@@ -544,11 +531,9 @@ function setupWebSocket(city, updateChartCallback) {
 
 document.addEventListener('DOMContentLoaded', () => {
   const city = "Berlin"; // Standardstadt
-
   fetchWeatherData(city);
   const realtimeChart = createRealtimeChart("#realtimeContainer", []);
   console.log("Chart initialisiert:", realtimeChart);
-
   // Funktion zum Aktualisieren des Echtzeit-Charts
   function updateRealtimeChart(data) {
     console.log("Daten, die an den Chart übergeben werden:", data); // Debug
@@ -590,46 +575,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Echtzeitdaten starten
   startRealtimeUpdates(city, 60000, updateRealtimeChart) // Hier wird die Funktion verwendet
+});
 
 
 
+document.getElementById('searchButton').addEventListener('click', () => {
 
-  document.getElementById('searchButton').addEventListener('click', () => {
+  const city = document.getElementById('cityInput').value.trim();
+  if (!city) {
+    alert("Bitte Stadt eingeben!");
+    return;
+  }
+  const cacheKey = `weatherData_${city}`;
+  localStorage.removeItem(cacheKey);
+  fetchWeatherData(city);
+});
 
-    const city = document.getElementById('cityInput').value.trim();
+document.getElementById('cityInput').addEventListener('keyup', (event) => {
+  if (event.key === 'Enter') {
+    const city = event.target.value.trim();
     if (!city) {
       alert("Bitte Stadt eingeben!");
       return;
     }
-
-    console.log("Eingegebene Stadt:", city);
-    // WebSocket für die neue Stadt einrichten
-    setupWebSocket(city, updateRealtimeChart);
-
     fetchWeatherData(city);
-
-    const cacheKey = `weatherData_${city}`;
-    localStorage.removeItem(cacheKey);
-    
-  });
-
-  document.getElementById('cityInput').addEventListener('keyup', (event) => {
-    if (event.key === 'Enter') {
-      const city = event.target.value.trim();
-      if (!city) {
-        alert("Bitte Stadt eingeben!");
-        return;
-      }
-      console.log("Eingegebene Stadt:", city);
-
-      // WebSocket für die neue Stadt einrichten
-      setupWebSocket(city, updateRealtimeChart);
-
-      fetchWeatherData(city);
-      const cacheKey = `weatherData_${city}`;
-      localStorage.removeItem(cacheKey);
-    }
-  });
+  }
 });
 
 function getHourlyForecastData(forecast, currentTime) {
