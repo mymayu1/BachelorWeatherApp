@@ -44,6 +44,11 @@ class WeatherWebSocketServer:
                             return {
                                 'time': data['data']['time'],
                                 'temp': data['data']['values']['temperature'],
+                                'humidity': data['data']['values']['humidity'],
+                                'windSpeed': data['data']['values']['windSpeed'],
+                                'visibility': data['data']['values']['visibility'],
+                                'pressureSurfaceLevel': data['data']['values']['pressureSurfaceLevel'],
+                                'cloudCover': data['data']['values']['cloudCover'],
                                 'city': city
                             }
                         else:

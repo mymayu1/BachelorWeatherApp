@@ -221,16 +221,169 @@ export function createLineChart(containerId, data) {
         linePath.attr("d", line.x((d) => newXScale(new Date(d.time))))
     }
 }
+//Functioning Code but only temp data shown
+// export function createRealtimeChart(containerId, initialData) {
+//     const margin = { top: 20, right: 50, bottom: 30, left: 50 };
+//     const width = 1800 - margin.left - margin.right;
+//     const height = 700 - margin.top - margin.bottom;
+
+//     // Clear any existing chart
+//     d3.select(containerId).html('');
+
+//     const svg = d3
+//         .select(containerId)
+//         .append("svg")
+//         .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+//         .attr("preserveAspectRatio", "xMidYMid meet");
+
+//     const chartGroup = svg.append("g")
+//         .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+//     // Initialize scales
+//     const xScale = d3.scaleTime()
+//         .range([0, width]);
+
+//     const yScale = d3.scaleLinear()
+//         .range([height, 0]);
+
+//     // Add axes groups
+//     const xAxisGroup = chartGroup.append("g")
+//         .attr("class", "x-axis")
+//         .attr("transform", `translate(0, ${height})`);
+
+//     const yAxisGroup = chartGroup.append("g")
+//         .attr("class", "y-axis");
+
+//     // Create the line generator
+//     const line = d3.line()
+//         .x(d => xScale(new Date(d.time)))
+//         .y(d => yScale(d.temp))
+//         .curve(d3.curveMonotoneX); // Smooth curve
+
+//     // Add the path element for the line
+//     const path = chartGroup.append("path")
+//         .attr("class", "line")
+//         .attr("fill", "none")
+//         .attr("stroke", "white")
+//         .attr("stroke-width", 2);
+
+//     // Function to update the chart
+//     function updateChart(data) {
+//         if (!Array.isArray(data) || data.length === 0) {
+//             console.warn("No valid data to display");
+//             return;
+//         }
+
+//         // Update scales
+//         const timeExtent = d3.extent(data, d => new Date(d.time));
+//         xScale.domain(timeExtent);
+
+//         const tempExtent = d3.extent(data, d => d.temp);
+//         const tempPadding = (tempExtent[1] - tempExtent[0]) * 0.1;
+//         yScale.domain([tempExtent[0] - tempPadding, tempExtent[1] + tempPadding]);
+
+//         // Update axes
+//         const xAxis = d3.axisBottom(xScale)
+//             .ticks(5)
+//             .tickFormat(d3.timeFormat("%H:%M"));
+        
+//         const yAxis = d3.axisLeft(yScale)
+//             .ticks(5)
+//             .tickFormat(d => `${d}°C`);
+
+//         xAxisGroup.call(xAxis);
+//         yAxisGroup.call(yAxis);
+
+//         // Update line
+//         path.datum(data)
+//             .attr("d", line);
+
+//         // Add points
+//         const points = chartGroup.selectAll(".point")
+//             .data(data, d => d.time);
+
+//         // Remove old points
+//         points.exit().remove();
+
+//         // Add new points
+//         points.enter()
+//             .append("circle")
+//             .attr("class", "point")
+//             .merge(points)
+//             .attr("cx", d => xScale(new Date(d.time)))
+//             .attr("cy", d => yScale(d.temp))
+//             .attr("r", 4)
+//             .attr("fill", "white");
+
+//         // Add temperature labels
+//         const labels = chartGroup.selectAll(".temp-label")
+//             .data(data, d => d.time);
+
+//         // Remove old labels
+//         labels.exit().remove();
+
+//         // Add new labels
+//         labels.enter()
+//             .append("text")
+//             .attr("class", "temp-label")
+//             .merge(labels)
+//             .attr("x", d => xScale(new Date(d.time)))
+//             .attr("y", d => yScale(d.temp) - 50)
+//             .attr("text-anchor", "middle")
+//             .attr("fill", "white")
+//             .text(d => `${d.temp}°C`);
+//     }
+
+//     // Return the update function
+//     return {
+//         update: updateChart
+//     };
+// }
+
 export function createRealtimeChart(containerId, initialData) {
-    const margin = { top: 20, right: 50, bottom: 30, left: 50 };
+    const margin = { top: 20, right: 80, bottom: 30, left: 60 };
     const width = 1800 - margin.left - margin.right;
     const height = 700 - margin.top - margin.bottom;
 
-    // Clear any existing chart
+    const dataSeries = {
+        temperature: { color: 'white', label: 'Temperature (°C)', active: true },
+        humidity: { color: '#4CAF50', label: 'Humidity (%)', active: false },
+        windSpeed: { color: '#2196F3', label: 'Wind Speed (m/s)', active: false },
+        visibility: { color: '#FFC107', label: 'Visibility (km)', active: false },
+        pressureSurfaceLevel: { color: '#9C27B0', label: 'Pressure (hPa)', active: false },
+        cloudCover: { color: '#607D8B', label: 'Cloud Cover (%)', active: false }
+    };
+
     d3.select(containerId).html('');
 
-    const svg = d3
-        .select(containerId)
+    const filterContainer = d3.select(containerId)
+        .append('div')
+        .attr('class', 'filter-container')
+        .style('margin-bottom', '10px');
+
+    Object.entries(dataSeries).forEach(([key, config]) => {
+        const label = filterContainer
+            .append('label')
+            .style('margin-right', '15px')
+            .style('color', config.color);
+
+        label.append('input')
+            .attr('type', 'checkbox')
+            .attr('value', key)
+            .attr('checked', config.active ? '' : null)
+            .style('margin-right', '5px')
+            .on('change', function() {
+                dataSeries[key].active = this.checked;
+                if (currentData.length > 0) {
+                    updateChart(currentData);
+                }
+            });
+
+        label.append('span')
+            .text(config.label);
+    });
+
+    const svg = d3.select(containerId)
         .append("svg")
         .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
         .attr("preserveAspectRatio", "xMidYMid meet");
@@ -238,103 +391,107 @@ export function createRealtimeChart(containerId, initialData) {
     const chartGroup = svg.append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    // Initialize scales
-    const xScale = d3.scaleTime()
-        .range([0, width]);
+    const xScale = d3.scaleTime().range([0, width]);
+    const yScales = {};
 
-    const yScale = d3.scaleLinear()
-        .range([height, 0]);
+    Object.keys(dataSeries).forEach(key => {
+        yScales[key] = d3.scaleLinear().range([height, 0]);
+    });
 
-    // Add axes groups
     const xAxisGroup = chartGroup.append("g")
         .attr("class", "x-axis")
         .attr("transform", `translate(0, ${height})`);
 
-    const yAxisGroup = chartGroup.append("g")
-        .attr("class", "y-axis");
-
-    // Create the line generator
-    const line = d3.line()
-        .x(d => xScale(new Date(d.time)))
-        .y(d => yScale(d.temp))
-        .curve(d3.curveMonotoneX); // Smooth curve
-
-    // Add the path element for the line
-    const path = chartGroup.append("path")
-        .attr("class", "line")
-        .attr("fill", "none")
-        .attr("stroke", "white")
-        .attr("stroke-width", 2);
-
-    // Function to update the chart
-    function updateChart(data) {
-        if (!Array.isArray(data) || data.length === 0) {
-            console.warn("No valid data to display");
-            return;
+    const yAxisGroups = {};
+    Object.entries(dataSeries).forEach(([key, config], index) => {
+        const group = chartGroup.append("g")
+            .attr("class", `y-axis-${key}`)
+            .style("display", config.active ? "block" : "none");
+        
+        if (index > 0) {
+            group.attr("transform", `translate(${width}, 0)`);
         }
+        yAxisGroups[key] = group;
+    });
 
-        // Update scales
-        const timeExtent = d3.extent(data, d => new Date(d.time));
-        xScale.domain(timeExtent);
+    const lines = {};
+    Object.keys(dataSeries).forEach(key => {
+        lines[key] = d3.line()
+            .x(d => xScale(new Date(d.time)))
+            .y(d => {
+                const value = key === 'temperature' ? d.temp : d[key];
+                return yScales[key](value);
+            })
+            .defined(d => {
+                const value = key === 'temperature' ? d.temp : d[key];
+                return value !== null && !isNaN(value);
+            });
+    });
 
-        const tempExtent = d3.extent(data, d => d.temp);
-        const tempPadding = (tempExtent[1] - tempExtent[0]) * 0.1;
-        yScale.domain([tempExtent[0] - tempPadding, tempExtent[1] + tempPadding]);
+    const paths = {};
+    Object.entries(dataSeries).forEach(([key, config]) => {
+        paths[key] = chartGroup.append("path")
+            .attr("class", `line-${key}`)
+            .attr("fill", "none")
+            .attr("stroke", config.color)
+            .attr("stroke-width", 2)
+            .style("display", config.active ? "block" : "none");
+    });
 
-        // Update axes
+    let currentData = [];
+
+    function updateChart(data) {
+        if (!data || data.length === 0) return;
+        
+        currentData = data;
+        xScale.domain(d3.extent(data, d => new Date(d.time)));
+
+        Object.entries(dataSeries).forEach(([key, config]) => {
+            if (config.active) {
+                const values = data.map(d => key === 'temperature' ? d.temp : d[key])
+                    .filter(v => v !== null && !isNaN(v));
+                
+                if (values.length > 0) {
+                    const extent = d3.extent(values);
+                    const padding = (extent[1] - extent[0]) * 0.1;
+                    yScales[key].domain([extent[0] - padding, extent[1] + padding]);
+
+                    const yAxis = d3.axisLeft(yScales[key])
+                        .ticks(5)
+                        .tickFormat(d => `${d}${getUnit(key)}`);
+
+                    yAxisGroups[key]
+                        .style("display", "block")
+                        .call(yAxis);
+
+                    paths[key]
+                        .style("display", "block")
+                        .datum(data)
+                        .attr("d", lines[key]);
+                }
+            } else {
+                yAxisGroups[key].style("display", "none");
+                paths[key].style("display", "none");
+            }
+        });
+
         const xAxis = d3.axisBottom(xScale)
             .ticks(5)
             .tickFormat(d3.timeFormat("%H:%M"));
-        
-        const yAxis = d3.axisLeft(yScale)
-            .ticks(5)
-            .tickFormat(d => `${d}°C`);
-
         xAxisGroup.call(xAxis);
-        yAxisGroup.call(yAxis);
-
-        // Update line
-        path.datum(data)
-            .attr("d", line);
-
-        // Add points
-        const points = chartGroup.selectAll(".point")
-            .data(data, d => d.time);
-
-        // Remove old points
-        points.exit().remove();
-
-        // Add new points
-        points.enter()
-            .append("circle")
-            .attr("class", "point")
-            .merge(points)
-            .attr("cx", d => xScale(new Date(d.time)))
-            .attr("cy", d => yScale(d.temp))
-            .attr("r", 4)
-            .attr("fill", "white");
-
-        // Add temperature labels
-        const labels = chartGroup.selectAll(".temp-label")
-            .data(data, d => d.time);
-
-        // Remove old labels
-        labels.exit().remove();
-
-        // Add new labels
-        labels.enter()
-            .append("text")
-            .attr("class", "temp-label")
-            .merge(labels)
-            .attr("x", d => xScale(new Date(d.time)))
-            .attr("y", d => yScale(d.temp) - 50)
-            .attr("text-anchor", "middle")
-            .attr("fill", "white")
-            .text(d => `${d.temp}°C`);
     }
 
-    // Return the update function
-    return {
-        update: updateChart
-    };
+    function getUnit(key) {
+        const units = {
+            temperature: '°C',
+            humidity: '%',
+            windSpeed: 'm/s',
+            visibility: 'km',
+            pressureSurfaceLevel: 'hPa',
+            cloudCover: '%'
+        };
+        return units[key] || '';
+    }
+
+    return { update: updateChart };
 }
