@@ -339,7 +339,162 @@ export function createLineChart(containerId, data) {
 //         update: updateChart
 //     };
 // }
+//Functioning Code but selects too many weather datas
+// export function createRealtimeChart(containerId, initialData) {
+//     const margin = { top: 20, right: 80, bottom: 30, left: 60 };
+//     const width = 1800 - margin.left - margin.right;
+//     const height = 700 - margin.top - margin.bottom;
 
+//     const dataSeries = {
+//         temperature: { color: 'white', label: 'Temperature (°C)', active: true },
+//         humidity: { color: '#4CAF50', label: 'Humidity (%)', active: false },
+//         windSpeed: { color: '#2196F3', label: 'Wind Speed (m/s)', active: false },
+//         visibility: { color: '#FFC107', label: 'Visibility (km)', active: false },
+//         pressureSurfaceLevel: { color: '#9C27B0', label: 'Pressure (hPa)', active: false },
+//         cloudCover: { color: '#607D8B', label: 'Cloud Cover (%)', active: false }
+//     };
+
+//     d3.select(containerId).html('');
+
+//     const filterContainer = d3.select(containerId)
+//         .append('div')
+//         .attr('class', 'filter-container')
+//         .style('margin-bottom', '10px');
+
+//     Object.entries(dataSeries).forEach(([key, config]) => {
+//         const label = filterContainer
+//             .append('label')
+//             .style('margin-right', '15px')
+//             .style('color', config.color);
+
+//         label.append('input')
+//             .attr('type', 'checkbox')
+//             .attr('value', key)
+//             .attr('checked', config.active ? '' : null)
+//             .style('margin-right', '5px')
+//             .on('change', function() {
+//                 dataSeries[key].active = this.checked;
+//                 if (currentData.length > 0) {
+//                     updateChart(currentData);
+//                 }
+//             });
+
+//         label.append('span')
+//             .text(config.label);
+//     });
+
+//     const svg = d3.select(containerId)
+//         .append("svg")
+//         .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+//         .attr("preserveAspectRatio", "xMidYMid meet");
+
+//     const chartGroup = svg.append("g")
+//         .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+//     const xScale = d3.scaleTime().range([0, width]);
+//     const yScales = {};
+
+//     Object.keys(dataSeries).forEach(key => {
+//         yScales[key] = d3.scaleLinear().range([height, 0]);
+//     });
+
+//     const xAxisGroup = chartGroup.append("g")
+//         .attr("class", "x-axis")
+//         .attr("transform", `translate(0, ${height})`);
+
+//     const yAxisGroups = {};
+//     Object.entries(dataSeries).forEach(([key, config], index) => {
+//         const group = chartGroup.append("g")
+//             .attr("class", `y-axis-${key}`)
+//             .style("display", config.active ? "block" : "none");
+        
+//         if (index > 0) {
+//             group.attr("transform", `translate(${width}, 0)`);
+//         }
+//         yAxisGroups[key] = group;
+//     });
+
+//     const lines = {};
+//     Object.keys(dataSeries).forEach(key => {
+//         lines[key] = d3.line()
+//             .x(d => xScale(new Date(d.time)))
+//             .y(d => {
+//                 const value = key === 'temperature' ? d.temp : d[key];
+//                 return yScales[key](value);
+//             })
+//             .defined(d => {
+//                 const value = key === 'temperature' ? d.temp : d[key];
+//                 return value !== null && !isNaN(value);
+//             });
+//     });
+
+//     const paths = {};
+//     Object.entries(dataSeries).forEach(([key, config]) => {
+//         paths[key] = chartGroup.append("path")
+//             .attr("class", `line-${key}`)
+//             .attr("fill", "none")
+//             .attr("stroke", config.color)
+//             .attr("stroke-width", 2)
+//             .style("display", config.active ? "block" : "none");
+//     });
+
+//     let currentData = [];
+
+//     function updateChart(data) {
+//         if (!data || data.length === 0) return;
+        
+//         currentData = data;
+//         xScale.domain(d3.extent(data, d => new Date(d.time)));
+
+//         Object.entries(dataSeries).forEach(([key, config]) => {
+//             if (config.active) {
+//                 const values = data.map(d => key === 'temperature' ? d.temp : d[key])
+//                     .filter(v => v !== null && !isNaN(v));
+                
+//                 if (values.length > 0) {
+//                     const extent = d3.extent(values);
+//                     const padding = (extent[1] - extent[0]) * 0.1;
+//                     yScales[key].domain([extent[0] - padding, extent[1] + padding]);
+
+//                     const yAxis = d3.axisLeft(yScales[key])
+//                         .ticks(5)
+//                         .tickFormat(d => `${d}${getUnit(key)}`);
+
+//                     yAxisGroups[key]
+//                         .style("display", "block")
+//                         .call(yAxis);
+
+//                     paths[key]
+//                         .style("display", "block")
+//                         .datum(data)
+//                         .attr("d", lines[key]);
+//                 }
+//             } else {
+//                 yAxisGroups[key].style("display", "none");
+//                 paths[key].style("display", "none");
+//             }
+//         });
+
+//         const xAxis = d3.axisBottom(xScale)
+//             .ticks(5)
+//             .tickFormat(d3.timeFormat("%H:%M"));
+//         xAxisGroup.call(xAxis);
+//     }
+
+//     function getUnit(key) {
+//         const units = {
+//             temperature: '°C',
+//             humidity: '%',
+//             windSpeed: 'm/s',
+//             visibility: 'km',
+//             pressureSurfaceLevel: 'hPa',
+//             cloudCover: '%'
+//         };
+//         return units[key] || '';
+//     }
+
+//     return { update: updateChart };
+// }
 export function createRealtimeChart(containerId, initialData) {
     const margin = { top: 20, right: 80, bottom: 30, left: 60 };
     const width = 1800 - margin.left - margin.right;
@@ -354,6 +509,8 @@ export function createRealtimeChart(containerId, initialData) {
         cloudCover: { color: '#607D8B', label: 'Cloud Cover (%)', active: false }
     };
 
+    let selectedExtraMetric = null;
+
     d3.select(containerId).html('');
 
     const filterContainer = d3.select(containerId)
@@ -362,18 +519,28 @@ export function createRealtimeChart(containerId, initialData) {
         .style('margin-bottom', '10px');
 
     Object.entries(dataSeries).forEach(([key, config]) => {
+        if (key === 'temperature') return;
+
         const label = filterContainer
             .append('label')
             .style('margin-right', '15px')
             .style('color', config.color);
 
         label.append('input')
-            .attr('type', 'checkbox')
+            .attr('type', 'radio')
+            .attr('name', 'metric')
             .attr('value', key)
-            .attr('checked', config.active ? '' : null)
             .style('margin-right', '5px')
             .on('change', function() {
-                dataSeries[key].active = this.checked;
+                if (this.checked) {
+                    // Hide previous metric if exists
+                    if (selectedExtraMetric) {
+                        yAxisGroups[selectedExtraMetric].style("display", "none");
+                        paths[selectedExtraMetric].style("display", "none");
+                    }
+                    selectedExtraMetric = key;
+                    dataSeries[key].active = true;
+                }
                 if (currentData.length > 0) {
                     updateChart(currentData);
                 }
@@ -403,12 +570,12 @@ export function createRealtimeChart(containerId, initialData) {
         .attr("transform", `translate(0, ${height})`);
 
     const yAxisGroups = {};
-    Object.entries(dataSeries).forEach(([key, config], index) => {
+    Object.entries(dataSeries).forEach(([key, config]) => {
         const group = chartGroup.append("g")
             .attr("class", `y-axis-${key}`)
             .style("display", config.active ? "block" : "none");
         
-        if (index > 0) {
+        if (key !== 'temperature') {
             group.attr("transform", `translate(${width}, 0)`);
         }
         yAxisGroups[key] = group;
@@ -446,39 +613,76 @@ export function createRealtimeChart(containerId, initialData) {
         currentData = data;
         xScale.domain(d3.extent(data, d => new Date(d.time)));
 
-        Object.entries(dataSeries).forEach(([key, config]) => {
-            if (config.active) {
-                const values = data.map(d => key === 'temperature' ? d.temp : d[key])
-                    .filter(v => v !== null && !isNaN(v));
-                
-                if (values.length > 0) {
-                    const extent = d3.extent(values);
-                    const padding = (extent[1] - extent[0]) * 0.1;
-                    yScales[key].domain([extent[0] - padding, extent[1] + padding]);
+        // Always update temperature
+        updateMetric('temperature', data);
 
-                    const yAxis = d3.axisLeft(yScales[key])
-                        .ticks(5)
-                        .tickFormat(d => `${d}${getUnit(key)}`);
+        // Update selected extra metric if any
+        if (selectedExtraMetric) {
+            updateMetric(selectedExtraMetric, data);
+        }
 
-                    yAxisGroups[key]
-                        .style("display", "block")
-                        .call(yAxis);
+        // Update data points for temperature
+        const points = chartGroup.selectAll(".point")
+            .data(data);
 
-                    paths[key]
-                        .style("display", "block")
-                        .datum(data)
-                        .attr("d", lines[key]);
-                }
-            } else {
-                yAxisGroups[key].style("display", "none");
-                paths[key].style("display", "none");
-            }
-        });
+        points.exit().remove();
+
+        points.enter()
+            .append("circle")
+            .attr("class", "point")
+            .merge(points)
+            .attr("cx", d => xScale(new Date(d.time)))
+            .attr("cy", d => yScales.temperature(d.temp))
+            .attr("r", 4)
+            .attr("fill", "white");
+
+        // Update temperature labels
+        const labels = chartGroup.selectAll(".temp-label")
+            .data(data);
+
+        labels.exit().remove();
+
+        labels.enter()
+            .append("text")
+            .attr("class", "temp-label")
+            .merge(labels)
+            .attr("x", d => xScale(new Date(d.time)))
+            .attr("y", d => yScales.temperature(d.temp) - 10)
+            .attr("text-anchor", "middle")
+            .attr("fill", "white")
+            .text(d => `${Math.round(d.temp)}°C`);
 
         const xAxis = d3.axisBottom(xScale)
             .ticks(5)
             .tickFormat(d3.timeFormat("%H:%M"));
         xAxisGroup.call(xAxis);
+    }
+
+    function updateMetric(key, data) {
+        const values = key === 'temperature' 
+            ? data.map(d => d.temp) 
+            : data.map(d => d[key]);
+        
+        const filteredValues = values.filter(v => v !== null && !isNaN(v));
+        
+        if (filteredValues.length > 0) {
+            const extent = d3.extent(filteredValues);
+            const padding = (extent[1] - extent[0]) * 0.1;
+            yScales[key].domain([extent[0] - padding, extent[1] + padding]);
+
+            const yAxis = d3.axisLeft(yScales[key])
+                .ticks(5)
+                .tickFormat(d => `${d}${getUnit(key)}`);
+
+            yAxisGroups[key]
+                .style("display", "block")
+                .call(yAxis);
+
+            paths[key]
+                .style("display", "block")
+                .datum(data)
+                .attr("d", lines[key]);
+        }
     }
 
     function getUnit(key) {
@@ -495,3 +699,4 @@ export function createRealtimeChart(containerId, initialData) {
 
     return { update: updateChart };
 }
+
