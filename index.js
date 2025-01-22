@@ -475,109 +475,292 @@ async function fetchWeatherData(city) {
   }
 }
 // Funktion zur Verbindung mit dem WebSocket-Server
+// function setupWebSocket(city, updateChartCallback) {
+//   const WEBSOCKET_URL = "ws://127.0.0.1:8080"; // Adresse des WebSocket-Servers
+//   let reconnectDelay = 1000; // Start mit 1 Sekunde
+
+//   const connect = () => {
+//     const socket = new WebSocket(WEBSOCKET_URL);
+//     const receivedTimestamps = new Set(); // Zur Vermeidung von Duplikaten
+
+//     socket.onopen = () => {
+//       console.log("WebSocket-Verbindung hergestellt");
+//       reconnectDelay = 1000; // Zurücksetzen des Reconnect-Delays
+//       socket.send(JSON.stringify({ type: "subscribe", city: city })); //Initialer Subscribe
+//     };
+
+//     socket.onmessage = (event) => {
+//       try {
+//         const data = JSON.parse(event.data);
+
+//         // Überprüfen, ob der Zeitstempel bereits verarbeitet wurde
+//         if (receivedTimestamps.has(data.time)) {
+//           console.warn("Duplikat-Daten ignoriert:", data);
+//           return;
+//         }
+//         receivedTimestamps.add(data.time);
+
+//         if (typeof updateChartCallback === "function") {
+//           updateChartCallback([
+//             {
+//               time: new Date(data.time).toLocaleTimeString(),
+//               temp: Math.floor(data.temp),
+//             },
+//           ]);
+//         }
+//       } catch (error) {
+//         console.error("Fehler beim Verarbeiten der WebSocket-Daten:", error);
+//       }
+//     };
+
+//     socket.onclose = () => {
+//       console.warn("WebSocket-Verbindung geschlossen. Versuche erneut zu verbinden...");
+//       setTimeout(connect, reconnectDelay);
+//       reconnectDelay = Math.min(reconnectDelay * 2, 60000); // Exponentielles Backoff (max. 60 Sekunden)
+//     };
+
+//     socket.onerror = (error) => {
+//       console.error("WebSocket-Fehler:", error);
+//     };
+//   };
+
+//   connect();
+// }
+
 function setupWebSocket(city, updateChartCallback) {
-  const WEBSOCKET_URL = "ws://127.0.0.1:8080"; // Adresse des WebSocket-Servers
-  let reconnectDelay = 1000; // Start mit 1 Sekunde
+  const WEBSOCKET_URL = "ws://127.0.0.1:8080";
+  let ws = null;
+  let reconnectAttempts = 0;
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const INITIAL_RECONNECT_DELAY = 1000;
+  let isConnected = false;
 
-  const connect = () => {
-    const socket = new WebSocket(WEBSOCKET_URL);
-    const receivedTimestamps = new Set(); // Zur Vermeidung von Duplikaten
-
-    socket.onopen = () => {
-      console.log("WebSocket-Verbindung hergestellt");
-      reconnectDelay = 1000; // Zurücksetzen des Reconnect-Delays
-      socket.send(JSON.stringify({ type: "subscribe", city: city }));
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-
-        // Überprüfen, ob der Zeitstempel bereits verarbeitet wurde
-        if (receivedTimestamps.has(data.time)) {
-          console.warn("Duplikat-Daten ignoriert:", data);
-          return;
-        }
-        receivedTimestamps.add(data.time);
-
-        if (typeof updateChartCallback === "function") {
-          updateChartCallback([
-            {
-              time: new Date(data.time).toLocaleTimeString(),
-              temp: Math.floor(data.temp),
-            },
-          ]);
-        }
-      } catch (error) {
-        console.error("Fehler beim Verarbeiten der WebSocket-Daten:", error);
+  function connect() {
+      if (ws) {
+          ws.close();
       }
-    };
 
-    socket.onclose = () => {
-      console.warn("WebSocket-Verbindung geschlossen. Versuche erneut zu verbinden...");
-      setTimeout(connect, reconnectDelay);
-      reconnectDelay = Math.min(reconnectDelay * 2, 60000); // Exponentielles Backoff (max. 60 Sekunden)
-    };
+      ws = new WebSocket(WEBSOCKET_URL);
+      const receivedTimestamps = new Set();
 
-    socket.onerror = (error) => {
-      console.error("WebSocket-Fehler:", error);
-    };
-  };
+      ws.onopen = () => {
+          console.log(`WebSocket connection established for ${city}`);
+          isConnected = true;
+          reconnectAttempts = 0;
+          // Subscribe to the city's weather updates
+          ws.send(JSON.stringify({ type: "subscribe", city: city }));
+      };
+
+      ws.onmessage = (event) => {
+          try {
+              const data = JSON.parse(event.data);
+              
+              // Verify this data is for the correct city
+              if (data.city !== city) {
+                  console.warn("Received data for wrong city, ignoring.");
+                  return;
+              }
+
+              // Check for duplicate timestamps
+              if (receivedTimestamps.has(data.time)) {
+                  console.warn("Duplicate data received, ignoring.");
+                  return;
+              }
+              receivedTimestamps.add(data.time);
+
+              // Clear old timestamps (optional, prevents memory leaks)
+              if (receivedTimestamps.size > 1000) {
+                  const oldestTimestamp = Array.from(receivedTimestamps)[0];
+                  receivedTimestamps.delete(oldestTimestamp);
+              }
+
+              // Format data for the chart
+              const chartData = [{
+                  time: new Date(data.time).toISOString(),
+                  temp: parseFloat(data.temp.toFixed(1))
+              }];
+
+              if (typeof updateChartCallback === "function") {
+                  updateChartCallback(chartData);
+              }
+          } catch (error) {
+              console.error("Error processing WebSocket data:", error);
+          }
+      };
+
+      ws.onclose = () => {
+          console.warn(`WebSocket connection closed for ${city}`);
+          isConnected = false;
+          if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+              const delay = INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttempts);
+              console.log(`Attempting to reconnect in ${delay/1000} seconds...`);
+              setTimeout(() => {
+                  reconnectAttempts++;
+                  connect();
+              }, delay);
+          } else {
+              console.error("Max reconnection attempts reached");
+          }
+      };
+
+      ws.onerror = (error) => {
+          console.error("WebSocket error:", error);
+      };
+  }
 
   connect();
+
+  return {
+      disconnect: () => {
+          if (ws) {
+              isConnected = false;
+              ws.close();
+              ws = null;
+          }
+      },
+      isConnected: () => isConnected,
+      reconnect: () => {
+          reconnectAttempts = 0;
+          connect();
+      }
+  };
 }
 
 
 
+
+// document.addEventListener('DOMContentLoaded', () => {
+//   const city = "Berlin"; // Standardstadt
+//   fetchWeatherData(city);
+//   const realtimeChart = createRealtimeChart("#realtimeContainer", []);
+//   console.log("Chart initialisiert:", realtimeChart);
+//   // Funktion zum Aktualisieren des Echtzeit-Charts
+//   function updateRealtimeChart(data) {
+//     console.log("Daten, die an den Chart übergeben werden:", data); // Debug
+//     const currentDate = new Date().toISOString().split("T")[0]; 
+
+//     // Validierung und Verarbeitung der Daten
+//     const validData = data
+//       .map(d => {
+//         if (!d.time || typeof d.temp !== "number") {
+//           console.warn("Ungültiger Eintrag gefunden:", d);
+//           return null;
+//         }
+  
+//         const fullTimestamp = `${currentDate}T${d.time}`; // Ergänze das Datum
+//         const timestamp = new Date(fullTimestamp);
+  
+//         if (isNaN(timestamp.getTime())) {
+//           console.warn("Ungültiger Zeitstempel nach Verarbeitung:", fullTimestamp);
+//           return null;
+//         }
+  
+//         return {
+//           time: timestamp.toISOString(), // Zeitstempel im ISO-Format
+//           temp: d.temp,
+//         };
+//       })
+//       .filter(d => d !== null); // Entferne ungültige Einträge
+  
+//     // Prüfe, ob gültige Daten vorliegen
+//     if (validData.length === 0) {
+//       console.warn("Keine gültigen Daten zum Anzeigen im Chart!");
+//       return;
+//     }
+  
+//     console.log("Daten für den Echtzeit-Chart (nach Filterung):", validData);
+
+//     realtimeChart.update(validData); // Aktualisiert den Chart mit den gefilterten und validierten  Daten
+//   }
+
+//   // Echtzeitdaten starten
+//   startRealtimeUpdates(city, 60000, updateRealtimeChart) // Hier wird die Funktion verwendet
+// });
+
 document.addEventListener('DOMContentLoaded', () => {
-  const city = "Berlin"; // Standardstadt
-  fetchWeatherData(city);
-  const realtimeChart = createRealtimeChart("#realtimeContainer", []);
-  console.log("Chart initialisiert:", realtimeChart);
-  // Funktion zum Aktualisieren des Echtzeit-Charts
-  function updateRealtimeChart(data) {
-    console.log("Daten, die an den Chart übergeben werden:", data); // Debug
-    const currentDate = new Date().toISOString().split("T")[0]; 
+  let currentWebSocket = null;
+  let realtimeChart = null;
+  let chartData = [];
+  const MAX_DATA_POINTS = 30;
+  const defaultCity = "Berlin";
 
-    // Validierung und Verarbeitung der Daten
-    const validData = data
-      .map(d => {
-        if (!d.time || typeof d.temp !== "number") {
-          console.warn("Ungültiger Eintrag gefunden:", d);
-          return null;
-        }
-  
-        const fullTimestamp = `${currentDate}T${d.time}`; // Ergänze das Datum
-        const timestamp = new Date(fullTimestamp);
-  
-        if (isNaN(timestamp.getTime())) {
-          console.warn("Ungültiger Zeitstempel nach Verarbeitung:", fullTimestamp);
-          return null;
-        }
-  
-        return {
-          time: timestamp.toISOString(), // Zeitstempel im ISO-Format
-          temp: d.temp,
-        };
-      })
-      .filter(d => d !== null); // Entferne ungültige Einträge
-  
-    // Prüfe, ob gültige Daten vorliegen
-    if (validData.length === 0) {
-      console.warn("Keine gültigen Daten zum Anzeigen im Chart!");
-      return;
-    }
-  
-    console.log("Daten für den Echtzeit-Chart (nach Filterung):", validData);
-
-    realtimeChart.update(validData); // Aktualisiert den Chart mit den gefilterten und validierten  Daten
+  // Function to initialize or reset the chart
+  function initializeChart() {
+      // Clear existing chart
+      d3.select("#realtimeContainer").html("");
+      
+      // Reset chart data
+      chartData = [];
+      
+      // Create new chart
+      realtimeChart = createRealtimeChart("#realtimeContainer", []);
   }
 
-  // Echtzeitdaten starten
-  startRealtimeUpdates(city, 60000, updateRealtimeChart) // Hier wird die Funktion verwendet
+  // Function to handle city changes
+  function handleCityChange(newCity) {
+      console.log(`Changing to city: ${newCity}`);
+      
+      // Clear existing chart and data
+      initializeChart();
+
+      // Update WebSocket connection
+      if (currentWebSocket) {
+          currentWebSocket.disconnect();
+      }
+
+      // Fetch weather data
+      fetchWeatherData(newCity);
+
+      // Setup new WebSocket connection
+      currentWebSocket = setupWebSocket(newCity, updateRealtimeChart);
+  }
+
+  function updateRealtimeChart(newData) {
+      console.log("Received new data:", newData);
+      
+      // Add new data points
+      chartData.push(...newData);
+      
+      // Keep only the last MAX_DATA_POINTS
+      if (chartData.length > MAX_DATA_POINTS) {
+          chartData = chartData.slice(-MAX_DATA_POINTS);
+      }
+      
+      // Sort data by time
+      chartData.sort((a, b) => new Date(a.time) - new Date(b.time));
+      
+      console.log("Updated chart data:", chartData);
+      if (realtimeChart) {
+          realtimeChart.update(chartData);
+      }
+  }
+
+  // Initialize with default city
+  initializeChart();
+  handleCityChange(defaultCity);
+
+  // Update the city search handler
+  document.getElementById('searchButton').addEventListener('click', () => {
+      const newCity = document.getElementById('cityInput').value.trim();
+      if (!newCity) {
+          alert("Please enter a city!");
+          return;
+      }
+      handleCityChange(newCity);
+  });
+
+  // Update the Enter key handler
+  document.getElementById('cityInput').addEventListener('keyup', (event) => {
+      if (event.key === 'Enter') {
+          const newCity = event.target.value.trim();
+          if (!newCity) {
+              alert("Please enter a city!");
+              return;
+          }
+          handleCityChange(newCity);
+      }
+  });
 });
-
-
 
 document.getElementById('searchButton').addEventListener('click', () => {
 

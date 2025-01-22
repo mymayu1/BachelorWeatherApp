@@ -221,10 +221,13 @@ export function createLineChart(containerId, data) {
         linePath.attr("d", line.x((d) => newXScale(new Date(d.time))))
     }
 }
-export function createRealtimeChart(containerId, realtimeData) {
-    const margin = { top: 20, right: 50, bottom: 20, left: 50 };
+export function createRealtimeChart(containerId, initialData) {
+    const margin = { top: 20, right: 50, bottom: 30, left: 50 };
     const width = 1800 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
+
+    // Clear any existing chart
+    d3.select(containerId).html('');
 
     const svg = d3
         .select(containerId)
@@ -232,121 +235,106 @@ export function createRealtimeChart(containerId, realtimeData) {
         .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
         .attr("preserveAspectRatio", "xMidYMid meet");
 
-    const chartGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+    const chartGroup = svg.append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const xScale = d3.scaleTime().range([0, width]);
-    const yScale = d3.scaleLinear().range([height, 0]);
-    console.log("X-Achse Domain:", xScale.domain());
-    console.log("Y-Achse Domain:", yScale.domain());
+    // Initialize scales
+    const xScale = d3.scaleTime()
+        .range([0, width]);
 
+    const yScale = d3.scaleLinear()
+        .range([height, 0]);
 
-    const xAxisGroup = chartGroup
-        .append("g")
+    // Add axes groups
+    const xAxisGroup = chartGroup.append("g")
         .attr("class", "x-axis")
         .attr("transform", `translate(0, ${height})`);
 
-    const yAxisGroup = chartGroup.append("g").attr("class", "y-axis");
+    const yAxisGroup = chartGroup.append("g")
+        .attr("class", "y-axis");
 
-    const line = d3
-        .line()
+    // Create the line generator
+    const line = d3.line()
         .x(d => xScale(new Date(d.time)))
-        .y(d => yScale(d.temp));
+        .y(d => yScale(d.temp))
+        .curve(d3.curveMonotoneX); // Smooth curve
 
-    const linePath = chartGroup.append("path")
+    // Add the path element for the line
+    const path = chartGroup.append("path")
+        .attr("class", "line")
         .attr("fill", "none")
         .attr("stroke", "white")
-        .attr("stroke-width", 3);
+        .attr("stroke-width", 2);
 
-    let lastUpdate = 0;
+    // Function to update the chart
+    function updateChart(data) {
+        if (!Array.isArray(data) || data.length === 0) {
+            console.warn("No valid data to display");
+            return;
+        }
 
-    const debounceUpdate = (data) => {
-        const now = Date.now();
-        if (now - lastUpdate < 1000) return; // Aktualisiere maximal einmal pro Sekunde
-        lastUpdate = now;
+        // Update scales
+        const timeExtent = d3.extent(data, d => new Date(d.time));
+        xScale.domain(timeExtent);
 
-        // Datenbereich aktualisieren
-        xScale.domain(d3.extent(data, (d) => new Date(d.time)));
-        yScale.domain([d3.min(data, (d) => d.temp) - 5, d3.max(data, (d) => d.temp) + 5]);
+        const tempExtent = d3.extent(data, d => d.temp);
+        const tempPadding = (tempExtent[1] - tempExtent[0]) * 0.1;
+        yScale.domain([tempExtent[0] - tempPadding, tempExtent[1] + tempPadding]);
 
-        // Achsen aktualisieren
-        xAxisGroup.call(d3.axisBottom(xScale).ticks(5).tickFormat(d3.timeFormat("%H:%M")));
-        yAxisGroup.call(d3.axisLeft(yScale));
+        // Update axes
+        const xAxis = d3.axisBottom(xScale)
+            .ticks(5)
+            .tickFormat(d3.timeFormat("%H:%M"));
+        
+        const yAxis = d3.axisLeft(yScale)
+            .ticks(5)
+            .tickFormat(d => `${d}°C`);
 
-        // Linie aktualisieren
-        linePath.datum(data).attr("d", line);
-    };
+        xAxisGroup.call(xAxis);
+        yAxisGroup.call(yAxis);
 
-    return {
-        update: debounceUpdate,
-    };
+        // Update line
+        path.datum(data)
+            .attr("d", line);
 
-    // Buttons hinzufügen
-    const buttonGroup = svg.append("g").attr("class", "button-group");
+        // Add points
+        const points = chartGroup.selectAll(".point")
+            .data(data, d => d.time);
 
-    const buttons = [
-        { label: "Temperatur", key: "temp" },
-        { label: "Niederschlag", key: "precipitation" },
-        { label: "UV-Index", key: "uvIndex" }
-    ];
-    buttonGroup.selectAll("g.button")
-        .data(buttons)
-        .enter()
-        .append("g")
-        .attr("class", "button")
-        .attr("transform", (_, i) => `translate(${margin.left + i * 100}, ${margin.top - 30})`)
-        .on("click", (_, d) => updateGraph(d.key))
-        .each(function (d) {
-    const button = d3.select(this);
-    button.append("rect")
-        .attr("width", 90)
-        .attr("height", 30)
-        .attr("fill", "lightgray")
-        .attr("rx", 5)
-        .attr("ry", 5);
+        // Remove old points
+        points.exit().remove();
 
-    button.append("text")
-        .attr("x", 45)
-        .attr("y", 20)
-        .attr("text-anchor", "middle")
-        .style("font-size", "14px")
-        .text(d.label);
-        });
+        // Add new points
+        points.enter()
+            .append("circle")
+            .attr("class", "point")
+            .merge(points)
+            .attr("cx", d => xScale(new Date(d.time)))
+            .attr("cy", d => yScale(d.temp))
+            .attr("r", 4)
+            .attr("fill", "white");
 
-    function updateGraph(data) {
-        console.log("Aktuelle Echtzeitdaten:", realtimeData);
+        // Add temperature labels
+        const labels = chartGroup.selectAll(".temp-label")
+            .data(data, d => d.time);
 
-        // Daten filtern und validieren
-        const filteredData = realtimeData
-            .filter(d => d.time && d[key] !== undefined) // Gültige Zeit und Wert
-            .map(d => ({
-                time: new Date(d.time), // Zeit als Date-Objekt
-                value: d[key] || 0      // Standardwert bei fehlendem Wert
-            }));
+        // Remove old labels
+        labels.exit().remove();
 
-        console.log("Gefilterte Daten für die Achsen:", filteredData);
-
-        // Skalen aktualisieren
-        xScale.domain(d3.extent(filteredData, d => d.time));
-        yScale.domain([
-            d3.min(filteredData, d => d.value) - 5,
-            d3.max(filteredData, d => d.value) + 5
-        ]);
-
-        console.log("xScale Domain:", xScale.domain());
-        console.log("yScale Domain:", yScale.domain());
-
-        // Achsen aktualisieren
-        xAxisGroup.call(d3.axisBottom(xScale).ticks(5).tickFormat(d3.timeFormat("%H:%M")));
-        yAxisGroup.call(d3.axisLeft(yScale));
-
-        // Linie aktualisieren
-        linePath.datum(filteredData).attr("d", line);
+        // Add new labels
+        labels.enter()
+            .append("text")
+            .attr("class", "temp-label")
+            .merge(labels)
+            .attr("x", d => xScale(new Date(d.time)))
+            .attr("y", d => yScale(d.temp) - 50)
+            .attr("text-anchor", "middle")
+            .attr("fill", "white")
+            .text(d => `${d.temp}°C`);
     }
 
-
+    // Return the update function
     return {
-        update: updateGraph,
-
-
+        update: updateChart
     };
 }
