@@ -338,3 +338,228 @@ export function createRealtimeChart(containerId, initialData) {
         update: updateChart
     };
 }
+export function createEnhancedChart(containerId, data, chartType = 'forecast') {
+    const margin = { top: 40, right: 80, bottom: 40, left: 60 };
+    const width = 1800 - margin.left - margin.right;
+    const height = 700 - margin.top - margin.bottom;
+
+    // Clear existing content
+    d3.select(containerId).html('');
+
+    const svg = d3
+        .select(containerId)
+        .append("svg")
+        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr("preserveAspectRatio", "xMidYMid meet");
+
+    const chartGroup = svg.append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    // Define data groups
+    const dataGroups = {
+        temperature: {
+            metrics: ['temperature', 'temperatureApparent', 'dewPoint'],
+            colors: ['#ff4444', '#ff8c00', '#00bcd4'],
+            labels: ['Temperature', 'Feels Like', 'Dew Point'],
+            unit: '°C',
+            yAxisPosition: 'left'
+        },
+        atmospheric: {
+            metrics: ['pressureSurfaceLevel', 'humidity'],
+            colors: ['#9c27b0', '#4caf50'],
+            labels: ['Pressure', 'Humidity'],
+            unit: ['hPa', '%'],
+            yAxisPosition: 'right'
+        },
+        wind: {
+            metrics: ['windSpeed', 'windGust'],
+            colors: ['#2196f3', '#3f51b5'],
+            labels: ['Wind Speed', 'Wind Gust'],
+            unit: 'm/s',
+            yAxisPosition: 'right'
+        }
+    };
+
+    // Create scales
+    const xScale = d3.scaleTime()
+        .range([0, width]);
+
+    const yScales = {};
+    Object.keys(dataGroups).forEach(group => {
+        yScales[group] = d3.scaleLinear().range([height, 0]);
+    });
+
+    // Set domains
+    const timeExtent = d3.extent(data, d => new Date(d.time));
+    xScale.domain(timeExtent);
+
+    Object.entries(dataGroups).forEach(([groupName, groupConfig]) => {
+        const allValues = data.flatMap(d => 
+            groupConfig.metrics.map(metric => d[metric])
+        );
+        const extent = d3.extent(allValues);
+        const padding = (extent[1] - extent[0]) * 0.1;
+        yScales[groupName].domain([extent[0] - padding, extent[1] + padding]);
+    });
+
+    // Create line generators
+    const lineGenerators = {};
+    Object.entries(dataGroups).forEach(([groupName, groupConfig]) => {
+        groupConfig.metrics.forEach((metric, index) => {
+            lineGenerators[metric] = d3.line()
+                .x(d => xScale(new Date(d.time)))
+                .y(d => yScales[groupName](d[metric]))
+                .curve(d3.curveMonotoneX);
+        });
+    });
+
+    // Add axes
+    const xAxis = d3.axisBottom(xScale)
+        .ticks(chartType === 'realtime' ? 5 : 10)
+        .tickFormat(chartType === 'realtime' ? 
+            d3.timeFormat("%H:%M") : 
+            d3.timeFormat("%a %H:%M"));
+
+    chartGroup.append("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0, ${height})`)
+        .call(xAxis);
+
+    // Add lines and legends
+    Object.entries(dataGroups).forEach(([groupName, groupConfig]) => {
+        // Create y-axis
+        const yAxis = d3[groupConfig.yAxisPosition === 'left' ? 'axisLeft' : 'axisRight'](yScales[groupName]);
+        const yAxisGroup = chartGroup.append("g")
+            .attr("class", `y-axis-${groupName}`)
+            .attr("transform", groupConfig.yAxisPosition === 'right' ? `translate(${width}, 0)` : '');
+        
+        yAxisGroup.call(yAxis);
+
+        // Add lines
+        groupConfig.metrics.forEach((metric, index) => {
+            chartGroup.append("path")
+                .datum(data)
+                .attr("class", `line-${metric}`)
+                .attr("fill", "none")
+                .attr("stroke", groupConfig.colors[index])
+                .attr("stroke-width", 2)
+                .attr("d", lineGenerators[metric]);
+        });
+
+        // Add legend
+        const legend = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${margin.left + 10}, ${margin.top + 20})`);
+
+        groupConfig.metrics.forEach((metric, i) => {
+            const legendItem = legend.append("g")
+                .attr("transform", `translate(0, ${i * 25})`);
+
+            legendItem.append("line")
+                .attr("x1", 0)
+                .attr("x2", 20)
+                .attr("y1", 0)
+                .attr("y2", 0)
+                .attr("stroke", groupConfig.colors[i])
+                .attr("stroke-width", 2);
+
+            legendItem.append("text")
+                .attr("x", 30)
+                .attr("y", 5)
+                .text(`${groupConfig.labels[i]} (${Array.isArray(groupConfig.unit) ? groupConfig.unit[i] : groupConfig.unit})`)
+                .attr("fill", "white")
+                .style("font-size", "12px");
+        });
+    });
+
+    // Add interactivity
+    const tooltip = d3.select(containerId)
+        .append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("background-color", "rgba(0, 0, 0, 0.8)")
+        .style("padding", "10px")
+        .style("border-radius", "5px")
+        .style("color", "white");
+
+    const focus = chartGroup.append("g")
+        .style("display", "none");
+
+    focus.append("line")
+        .attr("class", "focus-line")
+        .attr("y1", 0)
+        .attr("y2", height)
+        .style("stroke", "#fff")
+        .style("stroke-width", "1px")
+        .style("stroke-dasharray", "3,3");
+
+    chartGroup.append("rect")
+        .attr("class", "overlay")
+        .attr("width", width)
+        .attr("height", height)
+        .style("fill", "none")
+        .style("pointer-events", "all")
+        .on("mouseover", () => focus.style("display", null))
+        .on("mouseout", () => {
+            focus.style("display", "none");
+            tooltip.style("opacity", 0);
+        })
+        .on("mousemove", mousemove);
+
+    function mousemove(event) {
+        const x0 = xScale.invert(d3.pointer(event)[0]);
+        const bisectDate = d3.bisector(d => new Date(d.time)).left;
+        const i = bisectDate(data, x0, 1);
+        const d0 = data[i - 1];
+        const d1 = data[i];
+        const d = x0 - new Date(d0.time) > new Date(d1.time) - x0 ? d1 : d0;
+
+        focus.attr("transform", `translate(${xScale(new Date(d.time))},0)`);
+
+        let tooltipContent = `<strong>${d3.timeFormat("%Y-%m-%d %H:%M")(new Date(d.time))}</strong><br/>`;
+        Object.entries(dataGroups).forEach(([groupName, groupConfig]) => {
+            tooltipContent += `<br/><strong>${groupName}:</strong><br/>`;
+            groupConfig.metrics.forEach((metric, i) => {
+                tooltipContent += `${groupConfig.labels[i]}: ${d[metric]}${Array.isArray(groupConfig.unit) ? groupConfig.unit[i] : groupConfig.unit}<br/>`;
+            });
+        });
+
+        tooltip.html(tooltipContent)
+            .style("left", `${event.pageX + 15}px`)
+            .style("top", `${event.pageY - 15}px`)
+            .style("opacity", 1);
+    }
+
+    return {
+        update: function(newData) {
+            // Update logic for realtime data
+            if (chartType === 'realtime') {
+                data = newData;
+                // Update scales and lines
+                xScale.domain(d3.extent(data, d => new Date(d.time)));
+                Object.entries(dataGroups).forEach(([groupName, groupConfig]) => {
+                    const allValues = data.flatMap(d => 
+                        groupConfig.metrics.map(metric => d[metric])
+                    );
+                    const extent = d3.extent(allValues);
+                    const padding = (extent[1] - extent[0]) * 0.1;
+                    yScales[groupName].domain([extent[0] - padding, extent[1] + padding]);
+
+                    groupConfig.metrics.forEach((metric, index) => {
+                        chartGroup.select(`.line-${metric}`)
+                            .datum(data)
+                            .attr("d", lineGenerators[metric]);
+                    });
+                });
+
+                // Update axes
+                chartGroup.select(".x-axis").call(xAxis);
+                Object.entries(dataGroups).forEach(([groupName, groupConfig]) => {
+                    const yAxis = d3[groupConfig.yAxisPosition === 'left' ? 'axisLeft' : 'axisRight'](yScales[groupName]);
+                    chartGroup.select(`.y-axis-${groupName}`).call(yAxis);
+                });
+            }
+        }
+    };
+}
