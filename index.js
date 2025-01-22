@@ -3,7 +3,6 @@ import { displayWeatherData } from './modules/weatherDetails.js';
 const { DateTime } = luxon;
 import { createLineChart } from './modules/lineChart.js';
 import { createRealtimeChart } from './modules/lineChart.js';
-import { createEnhancedChart } from './modules/lineChart.js';
 
 
 updateTime();
@@ -225,30 +224,6 @@ function startRealtimeUpdates(city, updateInterval = 60000, updateChartCallback)
 function processWeatherData(weatherData, city) {
   const { realtime, forecast, fetchedAt } = weatherData;
 
-  if (!forecast.timelines || !forecast.timelines.daily || !forecast.timelines.hourly) {
-    console.error("Error: Forecast data is incomplete:", forecast.timelines);
-    return;
-  }
-
-  const todayForecast = forecast.timelines?.daily?.[0]?.values;
-  if (!todayForecast) {
-    throw new Error('Forecast data is missing or incomplete!');
-  }
-
-  // Create hourly forecast data with all required metrics
-  const hourlyForecastData = forecast.timelines.hourly.map((entry) => ({
-    time: entry.time || "Time not available",
-    temp: entry.values.temperature,
-    temperatureApparent: entry.values.temperatureApparent,
-    dewPoint: entry.values.dewPoint,
-    pressureSurfaceLevel: entry.values.pressureSurfaceLevel,
-    humidity: entry.values.humidity,
-    windSpeed: entry.values.windSpeed,
-    windGust: entry.values.windGust
-  }));
-  // Process forecast data for chart
-  processForecastData(hourlyForecastData);
-
   console.log("Daten abgerufen um:", fetchedAt);
   console.log("Realtime-Daten:", realtime);
   console.log("Forecast-Daten:", forecast);
@@ -267,12 +242,21 @@ function processWeatherData(weatherData, city) {
     return;
   }
 
+  const todayForecast = forecast.timelines?.daily?.[0]?.values;
+
+  const dailyForecast = forecast.timelines?.daily;
 
   if (!todayForecast) {
     throw new Error('Forecast-Daten fehlen oder sind unvollständig!');
   }
   console.log("Tagesvorhersage:", todayForecast);
 
+
+  const hourlyForecastData = forecast.timelines.hourly.map((entry) => ({
+    time: entry.time || "Zeit nicht verfügbar",
+    temp: entry.values.temperature,
+
+  }));
 
 
   console.log("Daten für Chart:", hourlyForecastData);
@@ -382,6 +366,50 @@ async function loadWeatherData() {
   }
 }
 
+// async function fetchWeatherData(city) {
+//   const cacheKey = `weatherData_${city}`;
+//   const cachedData = getFromCache(cacheKey);
+
+//   if (cachedData) {
+//     console.log("Cache-Daten gefunden:", cachedData);
+//     processWeatherData(cachedData, city);
+//     return;
+//   }
+
+//   try {
+//     const currentTime = new Date().toISOString();
+//     const realtimeUrl = `https://api.tomorrow.io/v4/weather/realtime?location=${city}&apikey=${apiKey}`;
+//     const forecastUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${city}&apikey=${apiKey}`;
+
+//     const [realtimeResponse, forecastResponse] = await Promise.all([
+//       fetchWithLimiter(realtimeUrl, options),
+//       fetchWithLimiter(forecastUrl, options),
+//     ]);
+
+//     if (!realtimeResponse.ok || !forecastResponse.ok) {
+//       console.error("Fehler beim Abrufen der Wetterdaten:", {
+//         realtimeStatus: realtimeResponse.status,
+//         forecastStatus: forecastResponse.status,
+//       });
+//       return;
+//     }
+//     const realtimeData = await realtimeResponse.json();
+//     const forecastData = await forecastResponse.json();
+
+
+//     const weatherData = {
+//       realtime: realtimeData,
+//       forecast: forecastData,
+//       fetchedAt: currentTime,
+//     };
+
+//     saveToCache(cacheKey, weatherData, cacheKey.includes("forecast") ? 60 : 15);
+//     processWeatherData(weatherData, city);
+
+//   } catch (error) {
+//     console.error("Fehler beim abrufen der Daten", error);
+//   }
+// }
 async function fetchForecastData(city) {
   const forecastKey = `weatherData_forecast_${city}`;
   const cachedForecast = getFromCache(forecastKey);
@@ -446,7 +474,58 @@ async function fetchWeatherData(city) {
     console.error("Fehler beim Abrufen der Wetterdaten:", error);
   }
 }
+// Funktion zur Verbindung mit dem WebSocket-Server
+// function setupWebSocket(city, updateChartCallback) {
+//   const WEBSOCKET_URL = "ws://127.0.0.1:8080"; // Adresse des WebSocket-Servers
+//   let reconnectDelay = 1000; // Start mit 1 Sekunde
 
+//   const connect = () => {
+//     const socket = new WebSocket(WEBSOCKET_URL);
+//     const receivedTimestamps = new Set(); // Zur Vermeidung von Duplikaten
+
+//     socket.onopen = () => {
+//       console.log("WebSocket-Verbindung hergestellt");
+//       reconnectDelay = 1000; // Zurücksetzen des Reconnect-Delays
+//       socket.send(JSON.stringify({ type: "subscribe", city: city })); //Initialer Subscribe
+//     };
+
+//     socket.onmessage = (event) => {
+//       try {
+//         const data = JSON.parse(event.data);
+
+//         // Überprüfen, ob der Zeitstempel bereits verarbeitet wurde
+//         if (receivedTimestamps.has(data.time)) {
+//           console.warn("Duplikat-Daten ignoriert:", data);
+//           return;
+//         }
+//         receivedTimestamps.add(data.time);
+
+//         if (typeof updateChartCallback === "function") {
+//           updateChartCallback([
+//             {
+//               time: new Date(data.time).toLocaleTimeString(),
+//               temp: Math.floor(data.temp),
+//             },
+//           ]);
+//         }
+//       } catch (error) {
+//         console.error("Fehler beim Verarbeiten der WebSocket-Daten:", error);
+//       }
+//     };
+
+//     socket.onclose = () => {
+//       console.warn("WebSocket-Verbindung geschlossen. Versuche erneut zu verbinden...");
+//       setTimeout(connect, reconnectDelay);
+//       reconnectDelay = Math.min(reconnectDelay * 2, 60000); // Exponentielles Backoff (max. 60 Sekunden)
+//     };
+
+//     socket.onerror = (error) => {
+//       console.error("WebSocket-Fehler:", error);
+//     };
+//   };
+
+//   connect();
+// }
 
 function setupWebSocket(city, updateChartCallback) {
   const WEBSOCKET_URL = "ws://127.0.0.1:8080";
@@ -555,6 +634,54 @@ function setupWebSocket(city, updateChartCallback) {
       }
   };
 }
+
+// document.addEventListener('DOMContentLoaded', () => {
+//   const city = "Berlin"; // Standardstadt
+//   fetchWeatherData(city);
+//   const realtimeChart = createRealtimeChart("#realtimeContainer", []);
+//   console.log("Chart initialisiert:", realtimeChart);
+//   // Funktion zum Aktualisieren des Echtzeit-Charts
+//   function updateRealtimeChart(data) {
+//     console.log("Daten, die an den Chart übergeben werden:", data); // Debug
+//     const currentDate = new Date().toISOString().split("T")[0]; 
+
+//     // Validierung und Verarbeitung der Daten
+//     const validData = data
+//       .map(d => {
+//         if (!d.time || typeof d.temp !== "number") {
+//           console.warn("Ungültiger Eintrag gefunden:", d);
+//           return null;
+//         }
+  
+//         const fullTimestamp = `${currentDate}T${d.time}`; // Ergänze das Datum
+//         const timestamp = new Date(fullTimestamp);
+  
+//         if (isNaN(timestamp.getTime())) {
+//           console.warn("Ungültiger Zeitstempel nach Verarbeitung:", fullTimestamp);
+//           return null;
+//         }
+  
+//         return {
+//           time: timestamp.toISOString(), // Zeitstempel im ISO-Format
+//           temp: d.temp,
+//         };
+//       })
+//       .filter(d => d !== null); // Entferne ungültige Einträge
+  
+//     // Prüfe, ob gültige Daten vorliegen
+//     if (validData.length === 0) {
+//       console.warn("Keine gültigen Daten zum Anzeigen im Chart!");
+//       return;
+//     }
+  
+//     console.log("Daten für den Echtzeit-Chart (nach Filterung):", validData);
+
+//     realtimeChart.update(validData); // Aktualisiert den Chart mit den gefilterten und validierten  Daten
+//   }
+
+//   // Echtzeitdaten starten
+//   startRealtimeUpdates(city, 60000, updateRealtimeChart) // Hier wird die Funktion verwendet
+// });
 
 document.addEventListener('DOMContentLoaded', () => {
   let currentWebSocket = null;
@@ -685,86 +812,34 @@ function getHourlyForecastData(forecast, currentTime) {
   });
 
   return hourlyData;
-}
 
-// Update the processForecastData function
+}
 function processForecastData(hourlyForecastData) {
+
   const currentTime = new Date();
   const weekForecast = new Date();
   weekForecast.setDate(currentTime.getDate() + 5);
 
+  //Filter damit nur die nächsten 5 Tage angezeigt werden
   const filteredData = hourlyForecastData.filter(d => {
-      const dataTime = new Date(d.time);
-      return dataTime >= currentTime && dataTime <= weekForecast;
-  });
+    const dataTime = new Date(d.time);
+    return dataTime >= currentTime && dataTime <= weekForecast;
+  })
 
-  const chartData = filteredData.map((d) => {
-  // Ensure all values are numbers and remove invalid data
-  const processValue = (value) => {
-      const num = Number(value);
-      return isNaN(num) ? 0 : num;
-  };
-  
-  return {
+  // Konvertiert Daten ins richtige Format für den Chart
+  const chartData = filteredData.map((d) => ({
     time: d.time,
-    temperature: processValue(d.temp),
-    temperatureApparent: processValue(d.temperatureApparent),
-    dewPoint: processValue(d.dewPoint),
-    pressureSurfaceLevel: processValue(d.pressureSurfaceLevel),
-    humidity: processValue(d.humidity),
-    windSpeed: processValue(d.windSpeed),
-    windGust: processValue(d.windGust)
-  }});
+    temp: Math.floor(d.temp),
+  }));
 
+  // Alte SVG entfernen
   const chartContainer = document.getElementById('forecastContainer');
   chartContainer.innerHTML = '';
-  createEnhancedChart("#forecastContainer", chartData, 'forecast');
+
+  createLineChart("#forecastContainer", chartData);
+
 }
 
-// Update the initialization of realtime chart
-function initializeChart() {
-  console.log("Initializing chart...");
-  d3.select("#realtimeContainer").html("");
-  chartData = [];
-  realtimeChart = createEnhancedChart("#realtimeContainer", [], 'realtime');
-  console.log("Chart initialized");
-}
-
-// Update the updateRealtimeChart function
-function updateRealtimeChart(newData) {
-  if (!newData || !newData.values) {
-      console.warn("No data received for chart update");
-      return;
-  }
-  
-  const formattedData = {
-      time: newData.time,
-      temperature: newData.values.temperature,
-      temperatureApparent: newData.values.temperatureApparent,
-      dewPoint: newData.values.dewPoint,
-      pressureSurfaceLevel: newData.values.pressureSurfaceLevel,
-      humidity: newData.values.humidity,
-      windSpeed: newData.values.windSpeed,
-      windGust: newData.values.windGust
-  };
-  
-  chartData.push(formattedData);
-  
-  if (chartData.length > MAX_DATA_POINTS) {
-      chartData = chartData.slice(-MAX_DATA_POINTS);
-  }
-  
-  chartData.sort((a, b) => new Date(a.time) - new Date(b.time));
-  
-  if (realtimeChart && typeof realtimeChart.update === 'function') {
-      realtimeChart.update(chartData);
-  }
-}
-// Helper function for processing values
-function processValue(value) {
-  const num = Number(value);
-  return isNaN(num) ? 0 : num;
-}
 window.addEventListener("storage", (event) => {
   if (event.key && event.key.startsWith("weatherData_")) {
     console.log("Cache in anderen Tabs aktualisiert:", event.key);
