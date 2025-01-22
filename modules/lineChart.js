@@ -7,7 +7,7 @@ export function createLineChart(containerId, data) {
     // Masse und Margins
     const margin = { top: 20, right: 50, bottom: 20, left: 50 };
     const width = 1800 - margin.left - margin.right;
-    const height = 500 - margin.top - margin.bottom;
+    const height = 700 - margin.top - margin.bottom;
 
     // SVG-Container erstellen
     const svg = d3
@@ -224,7 +224,7 @@ export function createLineChart(containerId, data) {
 export function createRealtimeChart(containerId, initialData) {
     const margin = { top: 20, right: 50, bottom: 30, left: 50 };
     const width = 1800 - margin.left - margin.right;
-    const height = 500 - margin.top - margin.bottom;
+    const height = 700 - margin.top - margin.bottom;
 
     // Clear any existing chart
     d3.select(containerId).html('');
