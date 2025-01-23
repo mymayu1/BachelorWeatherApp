@@ -484,7 +484,7 @@ function setupWebSocket(city, updateChartCallback) {
               // Format data for the chart
               const chartData = [{
                   time: new Date(data.time).toISOString(),
-                  temp: parseFloat(data.temp.toFixed(1)),
+                  temp: Math.floor(data.temp.toFixed(1)),
                   humidity: Number(data.humidity),
                   windSpeed: Number(data.windSpeed),
                   visibility: Number(data.visibility),
@@ -578,14 +578,19 @@ document.addEventListener('DOMContentLoaded', () => {
         currentWebSocket = null;
     }
 
-    // Update current city
+    // Update current city and reset data
     currentCity = newCity;
+    chartData = [];
+
+    // Reset chart and checkboxes
+    d3.select("#realtimeContainer").html("");
+    realtimeChart = createRealtimeChart("#realtimeContainer", []);
     
-    // Clear data for the new city
-    cityDataMap.set(currentCity, []);
+    // // Clear data for the new city
+    // cityDataMap.set(currentCity, []);
     
-    // Clear existing chart and create new one
-    initializeChart();
+    // // Clear existing chart and create new one
+    // initializeChart();
 
     // Fetch weather data for the new city
     await fetchWeatherData(newCity);
