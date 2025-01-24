@@ -30,7 +30,7 @@
         </header>
 
         <!--Hauptkontent-->
-        <main class="flex-grow w-full h-full px-4 py-2">
+        <main class="flex-grow w-full h-full px-4 py-2 relative">
             <div id="topBar" class="grid grid-cols-3 gap-4 mb-6">
                     <p id="location" class="text-lg font-semibold text-#fde294">Standort:</p>
                     <div class="grid grid-cols-2 gap-4">
@@ -43,7 +43,7 @@
                     <!-- Linke Seite -->
                     <div id="leftInformation" class="p-4 w-full md:w-1/3 flex flex-col items-start">
                         <div class="flex items-start">
-                            <h1 id="currTemp" class="text-7xl mb-4 text-#fde294">kein Wert°C</h1>
+                            <h1 id="currTemp" class="text-9xl mb-4 text-#fde294">kein Wert°C</h1>
                             <div class="ml-4 flex flex-col">
                                 <div class="bg-gray-700 box-border rounded-full shadow-md p-1 px-8 flex flex-nowrap space-x-4 justify-between m-3">
                                     <span class="text-sm font-medium text-#cde8f9">H:</span>
@@ -59,31 +59,31 @@
 
                     <!-- Wetterbeschreibung mittig -->
                     <div id="weatherDescriptionContainer" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                        <h1 id="weatherDescription" class="text-5xl ">kein Wert</h1>
+                        <h1 id="weatherDescription" class="text-7xl ">kein Wert</h1>
                     </div>
 
                     <!-- Rechte Seite -->
-                    <div id="rightInformation" class="bg-gray-700 box-border rounded-lg shadow-md px-3 py-4 flex flex-nowrap space-x-4 justify-between ">
-                        <div class="text-sm space-y-2 w-full text-gray-300">
-                            <div class="flex justify-between px-2">
-                                <span class="font-medium">Fühlt sich an wie: </span>
-                                <span id="feelsLike" class="font-semibold text-white">kein Wert°</span>
+                    <div id="rightInformation" class="bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg px-6 py-4 space-y-4">
+                        <div class="grid gap-4 text-md w-full">
+                            <div class="flex justify-between items-center border-b border-gray-600 pb-2">
+                                <span class="font-medium text-#cde8f9">Fühlt sich an wie:</span>
+                                <span id="feelsLike" class="font-bold text-white ml-8">kein Wert°</span>
                             </div>
-                            <div class="flex justify-between px-2">
-                                <span class="font-medium">Regenfall:</span>
-                                <span id="precip" class="font-semibold text-white">kein Wert %</span>
+                            <div class="flex justify-between items-center border-b border-gray-600 pb-2">
+                                <span class="font-medium text-#cde8f9">Regenfall:</span>
+                                <span id="precip" class="font-bold text-white ml-8">kein Wert %</span>
                             </div>
-                            <div class="flex justify-between px-2">
-                                <span class="font-medium">Luftfeuchtigkeit:</span>
-                                <span id="humidity" class="font-semibold text-white">kein Wert%</span>
+                            <div class="flex justify-between items-center border-b border-gray-600 pb-2">
+                                <span class="font-medium text-#cde8f9">Luftfeuchtigkeit:</span>
+                                <span id="humidity" class="font-bold text-white ml-8">kein Wert%</span>
                             </div>
-                            <div class="flex justify-between px-2">
-                                <span class="font-medium">Windgeschwindigkeit:</span>
-                                <span id="windSpeed" class="font-semibold text-white">kein Wert km/h</span>
+                            <div class="flex justify-between items-center border-b border-gray-600 pb-2">
+                                <span class="font-medium text-#cde8f9">Windgeschwindigkeit:</span>
+                                <span id="windSpeed" class="font-bold text-white ml-8">kein Wert km/h</span>
                             </div>
-                            <div class="flex justify-between px-2">
-                                <span class="font-medium">UV-Index:</span>
-                                <span id="uvI" class="font-semibold text-white">kein Wert</span>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium text-#cde8f9">UV-Index:</span>
+                                <span id="uvI" class="font-bold text-white ml-8">kein Wert</span>
                             </div>
                         </div>
                     </div>
@@ -93,9 +93,9 @@
                 <button id="realtimeTab" class="px-7 py-1 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-600 transition">Echtzeit</button>
                 <button id="forecastTab" class="px-7 py-1 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-md backdrop-blur-sm hover:bg-gray-600 transition">Vorhersage</button>
             </div>                    
-            <div id="tabContent" class=" mt-10 px-4 fixed bottom-0 w-full">
-                <div id="realtimeContainer" class="tab-content hidden bg-#5754A3 bg-opacity-75 p-2 rounded-lg"></div>
-                <div id="forecastContainer" class="tab-content active bg-#5754A3 bg-opacity-75 p-2 rounded-lg"></div>
+            <div id="tabContent" class="mt-10 px-4 w-full relative top-[420px]">
+                <div id="realtimeContainer" class="tab-content hidden bg-#5754A3 bg-opacity-75 p-2 rounded-lg h-[350px]"></div>
+                <div id="forecastContainer" class="tab-content active bg-#5754A3 bg-opacity-75 p-2 rounded-lg h-[350px]"></div>
             </div>
         </main>
     </div>
