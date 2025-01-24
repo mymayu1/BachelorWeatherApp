@@ -74,7 +74,7 @@ class WeatherWebSocketServer:
                     logger.error(f"Error broadcasting to client: {e}")
                     disconnected.append(websocket)
             
-            # Clean up disconnected clients
+            # Entferne interaktive Clients
             for websocket in disconnected:
                 await self.remove_client(websocket)
 
@@ -101,7 +101,7 @@ class WeatherWebSocketServer:
                         data = await self.fetch_weather_data(city)
                         if data:
                             await self.broadcast_to_city_subscribers(city, data)
-                await asyncio.sleep(144)  # Update every 2.4 minutes
+                await asyncio.sleep(180)  # Update every 3 minutes
             except Exception as e:
                 logger.error(f"Error in periodic updates: {e}")
                 await asyncio.sleep(5)  # Wait before retrying
