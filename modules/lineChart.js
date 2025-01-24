@@ -6,12 +6,12 @@ export function createLineChart(containerId, data) {
         return;
     }
 
-    // Dimensions
+    // Dimensionen
     const margin = { top: 20, right: 50, bottom: 20, left: 50 };
     const width = 1800 - margin.left - margin.right;
     const height = 700 - margin.top - margin.bottom;
 
-    // Create SVG container
+    // SVG-Container erstellen
     const svg = d3
         .select(containerId)
         .append("svg")
@@ -21,7 +21,7 @@ export function createLineChart(containerId, data) {
     const chartGroup = svg.append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    // Scales
+    // Skalen
     const xScale = d3.scaleTime()
         .domain(d3.extent(data, d => new Date(d.time)))
         .range([0, width]);
@@ -30,7 +30,7 @@ export function createLineChart(containerId, data) {
         .domain([d3.min(data, d => d.temp) - 5, d3.max(data, d => d.temp) + 5])
         .range([height, 0]);
 
-    // Clippath for chart area
+    // Clippath für den Diagrammbereich
     chartGroup
         .append("defs")
         .append("clipPath")
@@ -41,7 +41,7 @@ export function createLineChart(containerId, data) {
         .attr("width", width)
         .attr("height", height);
 
-    // Axes
+    // Achsen
     const xAxis = d3.axisBottom(xScale)
         .ticks(5)
         .tickFormat(d3.timeFormat("%A"));
@@ -63,14 +63,14 @@ export function createLineChart(containerId, data) {
         .x(d => xScale(new Date(d.time)))
         .y(d => yScale(d.temp));
 
-    // Add drag behavior
+    // Linien Generator
     const drag = d3.drag()
         .on("drag", dragged);
 
     function dragged(event) {
         if (event.sourceEvent.shiftKey || event.sourceEvent.ctrlKey) return;
         const transform = d3.zoomTransform(svg.node());
-        if (transform.k === 1) return; // Only allow panning when zoomed
+        if (transform.k === 1) return; // Panning nur erlauben wenn gezoomt
 
         const xChange = event.dx;
         const newTransform = d3.zoomIdentity
@@ -80,7 +80,7 @@ export function createLineChart(containerId, data) {
         svg.call(zoom.transform, newTransform);
     }
 
-    // Add the line
+    // Linie hinzufügen
     const linePath = chartGroup
         .append("path")
         .datum(data)
@@ -90,12 +90,12 @@ export function createLineChart(containerId, data) {
         .attr("d", line)
         .attr("clip-path", "url(#clip)");
 
-    // Enable drag on the chart area
+    // Drag auf den Diagrammbereich aktivieren
     chartGroup.call(drag);
 
     displayDailyLabels(chartGroup, dailyData, xScale, yScale);
 
-    // Data filtering functions
+    // Daten-Filterfunktionen
     function filter12Hours(data) {
         return data.filter(d => {
             const hour = new Date(d.time).getHours();
@@ -186,7 +186,7 @@ export function createLineChart(containerId, data) {
             .text(d => `${Math.round(d.tempMin)}°C`);
     }
 
-    // Zoom behavior
+    // Zoom-Verhalten
     const zoom = d3
         .zoom()
         .scaleExtent([1, 8])
@@ -194,7 +194,7 @@ export function createLineChart(containerId, data) {
         .extent([[0, 0], [width, height]])
         .on("zoom", zoomed)
         .filter(event => {
-            // Allow zoom only with shift or ctrl key pressed
+            // Zoom nur erlauben, wenn die Umschalt- oder Strg-Taste gedrückt wird
             return event.type === 'wheel' ? event.shiftKey || event.ctrlKey : true;
         });
 
@@ -256,7 +256,7 @@ export function createRealtimeChart(containerId, initialData) {
 
     d3.select(containerId).html('');
 
-    // Create filter controls
+    // Erstellt Filterfunktionen
     const filterContainer = d3.select(containerId)
         .append('div')
         .attr('class', 'filter-container')
@@ -293,7 +293,7 @@ export function createRealtimeChart(containerId, initialData) {
             .text(config.label);
     });
 
-    // Setup chart container
+    // Erstellt den Container
     const chartDiv = d3.select(containerId)
         .append("div")
         .style("position", "relative")
@@ -311,7 +311,7 @@ export function createRealtimeChart(containerId, initialData) {
     const chartGroup = svg.append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    // Add hover elements
+    // Hover-Elemente
     const overlay = chartGroup.append("rect")
         .attr("class", "overlay")
         .attr("width", width)
@@ -327,7 +327,7 @@ export function createRealtimeChart(containerId, initialData) {
         .style("stroke-dasharray", "5,5")
         .style("opacity", 0);
 
-    // Setup scales
+    // Skalen
     const xScale = d3.scaleTime().range([0, width]);
     const yScales = {};
 
@@ -335,7 +335,7 @@ export function createRealtimeChart(containerId, initialData) {
         yScales[key] = d3.scaleLinear().range([height, 0]);
     });
 
-    // Add axes
+    // Achsen hinzufügen
     const xAxisGroup = chartGroup.append("g")
         .attr("class", "x-axis")
         .attr("transform", `translate(0, ${height})`);
@@ -352,7 +352,7 @@ export function createRealtimeChart(containerId, initialData) {
         yAxisGroups[key] = group;
     });
 
-    // Setup line generators
+    // Line Generator
     const lines = {};
     Object.keys(dataSeries).forEach(key => {
         lines[key] = d3.line()
@@ -367,7 +367,7 @@ export function createRealtimeChart(containerId, initialData) {
             });
     });
 
-    // Create paths
+    // Paths erstellen
     const paths = {};
     Object.entries(dataSeries).forEach(([key, config]) => {
         paths[key] = chartGroup.append("path")
@@ -428,27 +428,27 @@ export function createRealtimeChart(containerId, initialData) {
     function updateChart(newData) {
         if (!newData || newData.length === 0) return;
 
-        // Update data management
+        // Datenmanagement erstellen
         currentData = [...currentData, ...newData];
         
-        // Keep only last 10 minutes of data
+        // Nur die letzten 10 Minuten werden gespeichert
         const tenMinutesAgo = new Date(Date.now() - 10 * 60000);
         currentData = [...currentData, ...newData]
             .filter(d => new Date(d.time) > tenMinutesAgo)
             .sort((a, b) => new Date(a.time) - new Date(b.time))
-            .slice(-20); // Keep maximum 20 data points
+            .slice(-20); // Bis zu 20 Datenpunkten sammeln
     
-        // Remove existing tooltip
+        // Entfernt den tooltip
         d3.select(containerId).selectAll(".tooltip").remove();
 
-        // Update scales
+        // Skalen updaten
         xScale.domain(d3.extent(currentData, d => new Date(d.time)));
         updateMetric('temperature', currentData);
         if (selectedExtraMetric) {
             updateMetric(selectedExtraMetric, currentData);
         }
 
-        // Create tooltip
+        // Tooltip erstellen
         const tooltip = d3.select(containerId)
             .append("div")
             .attr("class", "tooltip")
@@ -460,7 +460,7 @@ export function createRealtimeChart(containerId, initialData) {
             .style("color", "white")
             .style("pointer-events", "none");
 
-        // Update points
+        // Punkte aktualisieren
         const points = chartGroup.selectAll(".point")
             .data(currentData);
 
@@ -494,7 +494,7 @@ export function createRealtimeChart(containerId, initialData) {
                     .style("opacity", 0);
             });
 
-        // Update labels
+        // Labes aktualisieren
         const labels = chartGroup.selectAll(".temp-label")
             .data(currentData);
 
@@ -510,13 +510,13 @@ export function createRealtimeChart(containerId, initialData) {
             .attr("fill", "white")
             .text(d => `${Math.round(d.temp)}°C`);
 
-        // Update x-axis
+        // X-Achse aktualisieren
         const xAxis = d3.axisBottom(xScale)
             .ticks(5)
             .tickFormat(d3.timeFormat("%H:%M"));
         xAxisGroup.call(xAxis);
 
-        // Add hover functionality
+        // Hover Funktionalität
         overlay
             .on("mousemove", function(event) {
                 const mouseX = d3.pointer(event)[0];

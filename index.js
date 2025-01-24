@@ -6,7 +6,7 @@ const { DateTime } = luxon;
 const apiKey = 'dtYQZYtAmR1SF1gHaifXh854PrkeC0nm';
 const options = { method: 'GET', headers: { accept: 'application/json' } };
 
-// Cache management
+// Cache-Verwaltung
 function saveToCache(key, data, callInMinutes = 1) {
     const now = new Date();
     const item = {
@@ -24,7 +24,7 @@ function getFromCache(key) {
     return new Date().getTime() > item.expiry ? null : item.data;
 }
 
-// Forecast data handling
+// Verarbeitung von Vorhersagedaten
 async function fetchForecastData(city) {
     const forecastKey = `weatherData_forecast_${city}`;
     const cachedForecast = getFromCache(forecastKey);
@@ -34,12 +34,12 @@ async function fetchForecastData(city) {
     const forecastUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${city}&apikey=${apiKey}`;
     try {
         const response = await fetch(forecastUrl, options);
-        if (!response.ok) throw new Error("Forecast data fetch error");
+        if (!response.ok) throw new Error("Fehler beim Abrufen der Vorhersagedaten");
         const forecastData = await response.json();
         saveToCache(forecastKey, forecastData, 15);
         return forecastData;
     } catch (error) {
-        console.error("Forecast fetch error:", error);
+        console.error("Fehler beim Abrufen der Vorhersage:", error);
         return null;
     }
 }
@@ -57,7 +57,7 @@ function processWeatherData(weatherData, city) {
     const { lat: latitude, lon: longitude } = realtime.location || {};
     
     if (!latitude || !longitude) {
-        console.error("Coordinates unavailable");
+        console.error("Koordinaten nicht verfügbar");
         return;
     }
 
@@ -96,25 +96,25 @@ function getTimeZone(latitude, longitude) {
 }
 
 function convertToLocalTime(time, timeZone) {
-    if (!time) return "Invalid time";
+    if (!time) return "Ungültige Zeit";
     try {
         return DateTime.fromISO(time, { zone: "UTC" })
             .setZone(timeZone)
             .toLocaleString(DateTime.TIME_24_SIMPLE);
     } catch (error) {
-        console.error("Time conversion error:", error);
-        return "Time error";
+        console.error("Fehler bei der Zeitkonvertierung:", error);
+        return "Zeitfehler";
     }
 }
 
 async function loadWeatherData() {
     try {
         const response = await fetch('./weatherCodes.json');
-        if (!response.ok) throw new Error("Weather codes fetch error");
+        if (!response.ok) throw new Error("Fehler beim Abrufen der Wettercodes");
         const jsonData = await response.json();
         return jsonData.weatherCode;
     } catch (error) {
-        console.error("Weather codes load error:", error);
+        console.error("Fehler beim Laden der Wettercodes:", error);
         return {};
     }
 }
@@ -143,7 +143,7 @@ function setupWebSocket(city, updateChartCallback) {
 
             updateChartCallback?.(chartData);
         } catch (error) {
-            console.error("WebSocket data processing error:", error);
+            console.error("Fehler bei der Verarbeitung von WebSocket-Daten:", error);
         }
     };
 
@@ -167,7 +167,7 @@ function processForecastData(hourlyForecastData) {
     createLineChart("#forecastContainer", filteredData);
 }
 
-// Event Listeners and Initialization
+// Event Listener und Initialisierung
 document.addEventListener('DOMContentLoaded', () => {
     let realtimeChart = null;
     let currentWebSocket = null;
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 processWeatherData({ forecast, realtime }, newCity);
             }
         } catch (error) {
-            console.error("Error fetching weather data:", error);
+            console.error("Fehler beim Abrufen der Wetterdaten::", error);
         }
 
         currentWebSocket = setupWebSocket(newCity, data => {
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Tab switching
+// Tab-Wechsel
 document.getElementById("forecastTab").addEventListener("click", () => {
     document.getElementById("forecastContainer").classList.remove("hidden");
     document.getElementById("realtimeContainer").classList.add("hidden");
